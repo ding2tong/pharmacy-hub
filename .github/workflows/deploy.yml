@@ -12,10 +12,17 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - run: npm install
-      - run: npm run build
+
+      - name: Install Dependencies
+        run: npm install
+        working-directory: ./pharmacy-hub # 增加此行
+
+      - name: Build Project
+        run: npm run build
+        working-directory: ./pharmacy-hub # 增加此行
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./pharmacy-hub/dist # 修改此行
