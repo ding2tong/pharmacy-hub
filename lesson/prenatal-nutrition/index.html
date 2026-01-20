@@ -1,223 +1,84 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>孕婦營養補充指南</title>
+    <title>孕婦營養補充指南 - 藥學教育平台</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <!-- 樣式在這裡 -->
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f0f2f5; color: #333; overflow: hidden; }
-        #root { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .presentation-container { position: relative; width: 100%; height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-        .slide { position: absolute; width: 80%; max-width: 960px; height: 80%; max-height: 720px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 40px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out; opacity: 0; transform: translateX(100%); }
-        .slide.active { opacity: 1; transform: translateX(0); }
-        .slide.previous { opacity: 0; transform: translateX(-100%); }
-        .slide.next { opacity: 0; transform: translateX(100%); }
-        .slide-content { max-height: 100%; overflow-y: auto; width: 100%; }
-        .slide-content h1 { color: #2c3e50; font-size: 2.5em; margin-bottom: 15px; }
-        .slide-content h2 { color: #34495e; font-size: 1.8em; margin-bottom: 10px; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
-        .slide-content h3 { color: #444; font-size: 1.4em; margin-bottom: 10px; }
-        .slide-content p { font-size: 1.1em; line-height: 1.6; margin-bottom: 10px; white-space: pre-wrap; }
-        .slide-content ul { list-style-type: disc; margin-left: 20px; margin-bottom: 10px; }
-        .slide-content ol { list-style-type: decimal; margin-left: 20px; margin-bottom: 10px; }
-        .meta-info { font-size: 0.9em; color: #666; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
-
-        /* Navigation Buttons */
-        .nav-button { position: absolute; top: 50%; transform: translateY(-50%); background-color: rgba(44, 62, 80, 0.7); color: white; border: none; padding: 15px 20px; font-size: 1.5em; cursor: pointer; border-radius: 8px; z-index: 10; transition: background-color 0.3s; }
-        .nav-button:hover { background-color: rgba(44, 62, 80, 0.9); }
-        .prev-button { left: 20px; }
-        .next-button { right: 20px; }
-        .nav-button:disabled { background-color: rgba(189, 195, 199, 0.7); cursor: not-allowed; }
-
-        /* Table styles */
-        .table-container { overflow-x: auto; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background-color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
-        table th, table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
-        table th { background-color: #34495e; color: white; font-weight: bold; }
-        table tr:nth-child(even) { background-color: #f8f8f8; }
-        table tr:hover { background-color: #f1f1f1; }
-
-        /* Chart styles */
-        .chart-container { margin: 20px 0; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-
-        /* Quiz styles */
-        .quiz-container { background: #fdfdfd; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-top: 20px; }
-        .quiz-question h4 { margin-top: 0; color: #34495e; font-size: 1.3em; margin-bottom: 15px; }
-        .quiz-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        .quiz-option { display: flex; align-items: center; padding: 12px 15px; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
-        .quiz-option:hover { background-color: #eef; border-color: #3498db; }
-        .quiz-option input[type="radio"] { margin-right: 12px; transform: scale(1.2); }
-        .quiz-option.selected { background-color: #e0f2f7; border-color: #2196f3; }
-        .quiz-option.correct { background-color: #e8f5e9; border-color: #4CAF50; }
-        .quiz-option.incorrect { background-color: #ffebee; border-color: #F44336; }
-        .quiz-explanation { margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: bold; }
-        .quiz-explanation.correct { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .quiz-explanation.incorrect { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-
-        /* Callout styles */
-        .callout { border-left: 5px solid; padding: 15px 20px; margin: 20px 0; border-radius: 8px; display: flex; align-items: flex-start; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .callout .icon { font-size: 2em; line-height: 1; flex-shrink: 0; }
-        .callout-warning { border-left-color: #f39c12; background-color: #fff8e7; color: #8a6d3b; }
-        .callout-info { border-left-color: #3498db; background-color: #e7f3fe; color: #31708f; }
-        .callout-success { border-left-color: #27ae60; background-color: #eafaf1; color: #28a745; }
-        .callout-error { border-left-color: #e74c3c; background-color: #fdf3f2; color: #a94442; }
-        .callout h3 { margin-top: 0; margin-bottom: 5px; color: inherit; }
-        .callout p { margin-bottom: 0; font-size: 1em; line-height: 1.5; white-space: pre-wrap;}
-
-        /* Accordion styles */
-        .accordion { margin-top: 20px; }
-        .accordion-item { background: #fff; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .accordion-summary { padding: 15px 20px; font-weight: bold; color: #34495e; cursor: pointer; display: block; background-color: #f7f7f7; border-radius: 8px 8px 0 0; }
-        .accordion-summary:hover { background-color: #eee; }
-        .accordion-details { padding: 15px 20px; border-top: 1px solid #eee; color: #555; white-space: pre-wrap; }
-        .accordion-details p { margin: 0; }
-        details[open] .accordion-summary { background-color: #eef; color: #2980b9; }
-
-        /* Checklist styles */
-        .checklist { list-style: none; padding: 0; margin-top: 20px; }
-        .checklist-item { display: flex; align-items: center; background: #fff; padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .checklist-item input[type="checkbox"] { margin-right: 15px; transform: scale(1.2); }
-        .checklist-item label { flex-grow: 1; cursor: pointer; font-size: 1.1em; color: #444; }
-
-        /* Image styles */
-        .image-container { text-align: center; margin-top: 20px; }
-        .image-container img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .image-container .caption { margin-top: 10px; font-size: 0.95em; color: #666; }
-
-        /* Embed styles */
-        .embed-container { text-align: center; margin-top: 20px; }
-        .embed-container iframe { width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .embed-container .caption { margin-top: 10px; font-size: 0.95em; color: #666; }
-
-        @media (max-width: 768px) {
-            .slide { width: 95%; height: 95%; padding: 20px; }
-            .slide-content h1 { font-size: 2em; }
-            .slide-content h2 { font-size: 1.5em; }
-            .nav-button { padding: 10px 15px; font-size: 1.2em; }
-            .prev-button { left: 10px; }
-            .next-button { right: 10px; }
-            table th, table td { padding: 8px 10px; }
-            .callout { padding: 10px 15px; }
-            .callout .icon { font-size: 1.5em; }
-        }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
 </head>
+
 <body>
+    <div class="progress-bar" id="progress"></div>
+    <div class="nav-btn prev" onclick="moveSlide(-1)">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </div>
+    <div class="nav-btn next" onclick="moveSlide(1)">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+    </div>
+    <div class="font-controls">
+        <button class="font-btn" onclick="changeFontSize(-0.1)" title="更小">A-</button>
+        <button class="font-btn" onclick="changeFontSize(0.1)" title="更大">A+</button>
+    </div>
+    <div class="slide-indicator" id="dots"></div>
+
     <div id="root"></div>
 
+    <script src="../slides.js"></script>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         const { createRoot } = ReactDOM;
 
-        // Utility function to convert YouTube watch URL to embed URL
-        const getEmbedUrl = (url) => {
-            if (url.includes('youtube.com/watch?v=')) {
-                return url.replace('watch?v=', 'embed/');
-            }
-            return url;
-        };
+        // --- 組件庫 (Modern Premium 版) ---
 
-        // --- Component Definitions ---
-
-        // ChartComponent using Chart.js
         const ChartComponent = ({ data, chartType }) => {
             const chartRef = useRef(null);
             const chartInstance = useRef(null);
-
             useEffect(() => {
-                if (chartInstance.current) {
-                    chartInstance.current.destroy();
-                }
-
+                if (chartInstance.current) chartInstance.current.destroy();
                 const ctx = chartRef.current.getContext('2d');
-                const labels = data.labels;
-                const values = data.values;
-                const label = data.label || '數據';
-
-                const commonOptions = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: chartType !== 'pie',
-                            position: 'top',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== undefined) {
-                                        label += context.parsed.y;
-                                    } else if (context.parsed !== undefined) { // For pie chart
-                                        label += context.parsed;
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    }
-                };
-
-                const datasets = [{
-                    label: label,
-                    data: values,
-                    backgroundColor: chartType === 'pie' ? [
-                        '#4CAF50', '#2196F3', '#FFC107', '#E91E63', '#9C27B0',
-                        '#FF9800', '#00BCD4', '#8BC34A', '#FF5722', '#607D8B'
-                    ] : '#3498db',
-                    borderColor: chartType === 'pie' ? [
-                        '#4CAF50', '#2196F3', '#FFC107', '#E91E63', '#9C27B0'
-                    ] : '#217dbb',
-                    borderWidth: 1,
-                }];
-
                 chartInstance.current = new Chart(ctx, {
                     type: chartType,
                     data: {
-                        labels: labels,
-                        datasets: datasets,
+                        labels: data.labels,
+                        datasets: [{
+                            label: data.label || '數據',
+                            data: data.values,
+                            backgroundColor: chartType === 'pie' ? ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#ecfdf5'] : '#10b981',
+                            borderColor: '#ffffff',
+                            borderWidth: 3
+                        }]
                     },
-                    options: commonOptions,
-                });
-
-                return () => {
-                    if (chartInstance.current) {
-                        chartInstance.current.destroy();
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { labels: { font: { family: 'Inter', size: 12 }, usePointStyle: true, padding: 20 } } }
                     }
-                };
+                });
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
             }, [data, chartType]);
-
-            return (
-                <div className="chart-container">
-                    <canvas ref={chartRef}></canvas>
-                </div>
-            );
+            return <div className="h-72 mt-8 bg-black/5 p-6 rounded-[2.5rem]"><canvas ref={chartRef}></canvas></div>;
         };
 
-        // TableComponent
         const TableComponent = ({ data }) => (
-            <div className="table-container">
-                <table>
+            <div className="overflow-x-auto mt-8 rounded-[2rem] border border-black/5 shadow-sm bg-white/40 backdrop-blur-sm">
+                <table className="min-w-full divide-y divide-black/5">
                     <thead>
-                        <tr>
-                            {data.headers.map((header, idx) => (
-                                <th key={idx}>{header}</th>
-                            ))}
+                        <tr className="bg-black/[0.02]">
+                            {data.headers.map((h, i) => <th key={i} className="px-8 py-5 text-left text-xs font-bold text-emerald-900/60 uppercase tracking-widest">{h}</th>)}
                         </tr>
                     </thead>
-                    <tbody>
-                        {data.rows.map((row, rowIdx) => (
-                            <tr key={rowIdx}>
-                                {row.map((cell, cellIdx) => (
-                                    <td key={cellIdx} style={{ whiteSpace: 'pre-wrap' }}>{cell}</td>
-                                ))}
+                    <tbody className="divide-y divide-black/5">
+                        {data.rows.map((row, i) => (
+                            <tr key={i} className="hover:bg-white/40 transition-all duration-300">
+                                {row.map((c, j) => <td key={j} className="px-8 py-5 text-[1.05rem] text-gray-700 font-medium whitespace-pre-wrap">{c}</td>)}
                             </tr>
                         ))}
                     </tbody>
@@ -225,54 +86,46 @@
             </div>
         );
 
-        // QuizComponent
         const QuizComponent = ({ questions }) => {
             const [answers, setAnswers] = useState({});
-            const [showExplanation, setShowExplanation] = useState({});
-
-            const handleOptionClick = (qId, optionIdx) => {
-                setAnswers(prev => ({ ...prev, [qId]: optionIdx }));
-                setShowExplanation(prev => ({ ...prev, [qId]: true }));
-            };
-
             return (
                 <div className="quiz-container">
-                    {questions.map(question => (
-                        <div key={question.id} className="quiz-question">
-                            <h4>{question.question}</h4>
+                    {questions.map(q => (
+                        <div key={q.id} className="quiz-card">
+                            <h4 className="quiz-question">
+                                <span className="quiz-badge">Question</span>
+                                {q.question}
+                            </h4>
                             <div className="quiz-options">
-                                {question.options.map((option, idx) => {
-                                    const isSelected = answers[question.id] === idx;
-                                    const isCorrect = question.correctAnswer === idx;
-                                    const revealClass = showExplanation[question.id]
-                                        ? (isSelected && isCorrect ? 'correct' : (isSelected && !isCorrect ? 'incorrect' : (isCorrect ? 'correct' : '')))
-                                        : '';
+                                {q.options.map((opt, idx) => {
+                                    const isSelected = answers[q.id] === idx;
+                                    const isCorrect = q.correctAnswer === idx;
+                                    const showResult = answers[q.id] !== undefined;
+
+                                    let statusClass = "";
+                                    if (isSelected) {
+                                        statusClass = isCorrect ? "correct selected" : "incorrect selected";
+                                    } else if (showResult && isCorrect) {
+                                        statusClass = "revealed-correct";
+                                    }
+
                                     return (
-                                        <label key={idx}
-                                            className={`quiz-option ${revealClass} ${isSelected ? 'selected' : ''}`}
-                                            onClick={() => handleOptionClick(question.id, idx)}
+                                        <button
+                                            key={idx}
+                                            disabled={showResult}
+                                            onClick={() => setAnswers({ ...answers, [q.id]: idx })}
+                                            className={`quiz-option ${statusClass}`}
                                         >
-                                            <input
-                                                type="radio"
-                                                name={question.id}
-                                                value={idx}
-                                                checked={isSelected}
-                                                onChange={() => {}} // Controlled component
-                                            />
-                                            {option}
-                                        </label>
+                                            <span>{opt}</span>
+                                            {showResult && isCorrect && <span>✓</span>}
+                                            {isSelected && !isCorrect && <span>✗</span>}
+                                        </button>
                                     );
                                 })}
                             </div>
-                            {showExplanation[question.id] && (
-                                <div className={`quiz-explanation ${answers[question.id] === question.correctAnswer ? 'correct' : 'incorrect'}`}>
-                                    {answers[question.id] === question.correctAnswer ? '✓ 正確！' : '✗ 錯誤'}
-                                    {answers[question.id] !== question.correctAnswer && (
-                                        <p>正確答案是：{question.options[question.correctAnswer]}</p>
-                                    )}
-                                    {answers[question.id] === question.correctAnswer && (
-                                        <p>{question.explanation}</p>
-                                    )}
+                            {answers[q.id] !== undefined && (
+                                <div className="quiz-explanation">
+                                    <span className="font-bold mr-2">Explanation:</span> {q.explanation}
                                 </div>
                             )}
                         </div>
@@ -281,596 +134,196 @@
             );
         };
 
-        // CalloutComponent
         const CalloutComponent = ({ severity, title, content }) => {
-            const icons = {
-                warning: '⚠️',
-                info: 'ℹ️',
-                success: '✅',
-                error: '❌'
+            const themes = {
+                warning: 'bg-amber-50/80 border-amber-200 text-amber-950',
+                info: 'bg-emerald-50/80 border-emerald-200 text-emerald-950',
+                success: 'bg-emerald-100/80 border-accent/30 text-emerald-950',
+                error: 'bg-red-50/80 border-red-200 text-red-950 shadow-red-100/50'
             };
-
+            const icons = { warning: '⚠️', info: '💡', success: '✅', error: '🚨' };
             return (
-                <div className={`callout callout-${severity}`}>
-                    {icons[severity] && <span className="icon">{icons[severity]}</span>}
-                    <div>
-                        {title && <h3>{title}</h3>}
-                        <p>{content}</p>
+                <div className={`p-8 rounded-[3rem] border-2 mt-8 shadow-lg ${themes[severity] || themes.info} backdrop-blur-sm`}>
+                    <div className="flex items-center mb-3 text-xl font-extrabold uppercase tracking-tight">
+                        <span className="mr-3 text-2xl">{icons[severity] || icons.info}</span>{title}
                     </div>
+                    <p className="text-[1.1rem] font-medium leading-relaxed opacity-80">{content}</p>
                 </div>
             );
         };
 
-        // AccordionComponent
-        const AccordionComponent = ({ title, items }) => (
-            <div className="accordion">
-                {title && <h2>{title}</h2>}
+        const AccordionComponent = ({ items }) => (
+            <div className="mt-8 space-y-4">
                 {items.map((item, idx) => (
-                    <details key={idx} className="accordion-item">
-                        <summary className="accordion-summary">{item.title}</summary>
-                        <div className="accordion-details">
-                            <p>{item.content}</p>
+                    <details key={idx} className="group border border-white/50 rounded-[2.5rem] overflow-hidden bg-white/30 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/50">
+                        <summary className="p-6 cursor-pointer font-bold text-gray-900 list-none flex justify-between items-center group-open:bg-white/60">
+                            <span className="flex items-center text-lg">{item.title}</span>
+                            <span className="transition-transform duration-500 group-open:rotate-180 text-2xl opacity-40">↓</span>
+                        </summary>
+                        <div className="p-8 bg-white/40 text-gray-700 leading-relaxed whitespace-pre-wrap border-t border-white/50 text-[1.05rem]">
+                            {item.content}
                         </div>
                     </details>
                 ))}
             </div>
         );
 
-        // ChecklistComponent
-        const ChecklistComponent = ({ title, items }) => (
-            <div className="checklist-container">
-                {title && <h2>{title}</h2>}
-                <ul className="checklist">
-                    {items.map((item, idx) => (
-                        <li key={idx} className="checklist-item">
-                            <input type="checkbox" id={`checklist-item-${idx}`} />
-                            <label htmlFor={`checklist-item-${idx}`}>{item}</label>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+        const ChecklistComponent = ({ items }) => (
+            <ul className="mt-8 space-y-4">
+                {items.map((item, idx) => (
+                    <li key={idx} className="flex items-start p-6 bg-white/40 border border-white/60 rounded-[2.5rem] shadow-sm transition-all duration-300 hover:bg-white/60 hover:translate-x-1">
+                        <div className="mt-1 mr-5">
+                            <input type="checkbox" className="h-6 w-6 text-accent border-emerald-200 rounded-lg focus:ring-accent accent-accent transition-all cursor-pointer" />
+                        </div>
+                        <label className="text-gray-800 text-[1.1rem] font-semibold leading-relaxed">{item}</label>
+                    </li>
+                ))}
+            </ul>
         );
 
-        // ImageComponent
-        const ImageComponent = ({ title, url, alt, caption, width, height }) => (
-            <div className="image-container">
-                {title && <h2>{title}</h2>}
-                <img src={url} alt={alt} style={{ width: width, height: height }} />
-                {caption && <p className="caption">{caption}</p>}
-            </div>
-        );
-
-        // EmbedComponent
-        const EmbedComponent = ({ title, url, caption, width, height }) => (
-            <div className="embed-container">
-                {title && <h2>{title}</h2>}
-                <iframe
-                    src={getEmbedUrl(url)}
-                    width={width || "100%"}
-                    height={height || "500px"}
-                    frameBorder="0"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                ></iframe>
-                {caption && <p className="caption">{caption}</p>}
-            </div>
-        );
-
-
-        // SlideRenderer: Renders content based on slide type
-        const SlideRenderer = ({ slide }) => {
-            switch (slide.type) {
-                case 'title':
-                    return (
-                        <div className="slide-content">
-                            <h1>{slide.title}</h1>
-                            {slide.subtitle && <p style={{ fontSize: '1.5em', color: '#555' }}>{slide.subtitle}</p>}
-                            {slide.meta && (
-                                <div className="meta-info">
-                                    {typeof slide.meta === 'string' ? slide.meta :
-                                     Object.entries(slide.meta).map(([key, value]) => (
-                                         <span key={key} style={{ marginRight: '15px' }}>
-                                             {key}: {value}
-                                         </span>
-                                     ))}
-                                </div>
-                            )}
-                        </div>
-                    );
-                case 'text':
-                    return (
-                        <div className="slide-content">
-                            {slide.title && <h2>{slide.title}</h2>}
-                            <p>{slide.content}</p>
-                        </div>
-                    );
-                case 'table':
-                    return (
-                        <div className="slide-content">
-                            {slide.title && <h2>{slide.title}</h2>}
-                            <TableComponent data={slide.data} />
-                        </div>
-                    );
-                case 'chart':
-                    return (
-                        <div className="slide-content">
-                            {slide.title && <h2>{slide.title}</h2>}
-                            <ChartComponent data={slide.data} chartType={slide.chartType} />
-                        </div>
-                    );
-                case 'quiz':
-                    return (
-                        <div className="slide-content">
-                            {slide.title && <h2>{slide.title}</h2>}
-                            <QuizComponent questions={slide.questions} />
-                        </div>
-                    );
-                case 'callout':
-                    return (
-                        <div className="slide-content">
-                            {slide.title && <h2>{slide.title}</h2>}
-                            <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />
-                        </div>
-                    );
-                case 'accordion':
-                    return (
-                        <div className="slide-content">
-                            {slide.title && <h2>{slide.title}</h2>}
-                            <AccordionComponent title={slide.title} items={slide.items} />
-                        </div>
-                    );
-                case 'checklist':
-                    return (
-                        <div className="slide-content">
-                            {slide.title && <h2>{slide.title}</h2>}
-                            <ChecklistComponent title={slide.title} items={slide.items} />
-                        </div>
-                    );
-                case 'image':
-                    return (
-                        <div className="slide-content">
-                             <ImageComponent title={slide.title} url={slide.url} alt={slide.alt} caption={slide.caption} width={slide.width} height={slide.height} />
-                        </div>
-                    );
-                case 'embed':
-                    return (
-                        <div className="slide-content">
-                            <EmbedComponent title={slide.title} url={slide.url} caption={slide.caption} width={slide.width} height={slide.height} />
-                        </div>
-                    );
-                default:
-                    return <div className="slide-content"><h2>未知投影片類型</h2><p>{slide.type}</p></div>;
-            }
+        const CalculatorComponent = ({ type }) => {
+            return null;
         };
 
-        // Main App Component
+        const SlideRenderer = ({ slide }) => {
+            const containerStyles = { title: 'text-center', text: '' };
+            return (
+                <div className={slide.type === 'pdf' ? '' : `slide-content fade-in-up ${containerStyles[slide.type] || ''}`}>
+                    {slide.type === 'title' && (
+                        <div className="inline-block p-8 bg-emerald-100/50 rounded-[2.5rem] mb-12 shadow-inner">
+                            {slide.icon ? (
+                                <span className="text-7xl drop-shadow-md">{slide.icon}</span>
+                            ) : (
+                                <svg className="w-20 h-20 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            )}
+                        </div>
+                    )}
+                    {slide.title && (
+                        <h2 className={`${slide.type === 'title' ? 'text-5xl' : 'text-3xl'} font-extrabold mb-6 flex items-center ${slide.type === 'title' ? 'justify-center' : ''} leading-tight`}>
+                            {slide.icon && slide.type !== 'title' && <span className="mr-5 drop-shadow-sm">{slide.icon}</span>}
+                            <span className="bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">{slide.title}</span>
+                        </h2>
+                    )}
+                    {slide.subtitle && <p className="text-2xl text-accent font-semibold tracking-wide text-center mb-10 opacity-80">{slide.subtitle}</p>}
+                    {slide.type === 'title' && <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-emerald-200 to-transparent mx-auto mb-10 rounded-full"></div>}
+                    {slide.content && <p className={`text-gray-700 ${slide.type === 'title' ? 'text-[1.15rem]' : 'text-[1.125rem]'} whitespace-pre-wrap leading-relaxed opacity-90`}>{slide.content}</p>}
+                    {slide.type === 'table' && <TableComponent data={slide.data} />}
+                    {slide.type === 'chart' && <ChartComponent data={slide.data} chartType={slide.chartType} />}
+                    {slide.type === 'quiz' && <QuizComponent questions={slide.questions} />}
+                    {slide.type === 'callout' && <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />}
+                    {slide.type === 'accordion' && <AccordionComponent items={slide.items} />}
+                    {slide.type === 'checklist' && <ChecklistComponent items={slide.items} />}
+                    {slide.type === 'calculator' && <CalculatorComponent type={slide.calculatorType} />}
+                    {slide.type === 'pdf' && (
+                        <iframe src={slide.url} className="pdf-full-frame" frameBorder="0"></iframe>
+                    )}
+                    {slide.type === 'image' && (
+                        <div className="mt-10 text-center">
+                            <div className="relative inline-block">
+                                <img src={slide.url} alt={slide.alt} className="mx-auto rounded-[3.5rem] shadow-2xl max-h-96 object-cover border-[8px] border-white/60 backdrop-blur-sm" />
+                                <div className="absolute inset-0 rounded-[3.5rem] ring-1 ring-black/5"></div>
+                            </div>
+                            {slide.caption && <p className="mt-6 text-sm text-gray-400 italic font-semibold tracking-wide">{slide.caption}</p>}
+                        </div>
+                    )}
+                    {slide.type === 'title' && <div className="mt-16 text-emerald-900/40 text-xs font-bold animate-pulse tracking-[0.3em] uppercase">← Swipe horizontally to explore →</div>}
+                </div>
+            );
+        };
+
         const App = () => {
-            const [currentSlide, setCurrentSlide] = useState(0);
             const [slides, setSlides] = useState([]);
             const [loading, setLoading] = useState(true);
 
             useEffect(() => {
                 const slidesData = [
-                    // ⬇️ 把用戶的 JSON 投影片陣列放這裡
                     {
-                        "id": "slide-0",
+                        "id": "title",
                         "type": "title",
-                        "title": "孕婦營養補充指南",
-                        "subtitle": "備孕期到哺乳期的完整營養規劃",
-                        "meta": {
-                            "difficulty": "中級",
-                            "duration": "30分鐘",
-                            "targetAudience": "藥局員工、孕婦健康教育"
-                        }
+                        "title": "孕期營養指南",
+                        "subtitle": "為媽媽與寶寶儲備健康基礎",
+                        "meta": "難度：Basic • 時長：15分鐘"
                     },
                     {
-                        "id": "slide-1",
+                        "id": "folic-acid",
                         "type": "text",
-                        "title": "為什麼孕期營養如此重要？",
-                        "content": "✓ 孕婦營養狀態直接影響胎兒發育\n✓ 孕期缺乏關鍵營養素可能導致胎兒神經管缺損、唇顎裂等問題\n✓ 母體健康是給寶寶最好的禮物\n✓ 營養不足會影響產後恢復與哺乳品質\n\n💡 根據國民健康署數據：台灣孕婦葉酸攝取約99%未達標準，每10位育齡女性中就有1位缺乏葉酸"
+                        "icon": "🌿",
+                        "title": "葉酸 (Folic Acid)",
+                        "content": "孕早期最重要的營養素。\n有助於胎兒神經管發育，建議每日攝取 600 微克。\n常見食物：深綠色蔬菜、豆類、肝臟。"
                     },
                     {
-                        "id": "slide-2",
+                        "id": "iron",
                         "type": "text",
-                        "title": "孕期五大階段營養規劃",
-                        "content": "第一階段：備孕期（養卵90天）\n• 健康卵子生成需要約90天\n• 透過均衡飲食、運動、保健食品改善卵子品質\n\n第二階段：第一孕期（懷孕1-3個月，0-12週）\n• 胎兒器官開始發育的關鍵期\n• 大多數神經管缺損發生在受孕後15-28天\n\n第三階段：第二孕期（懷孕4-6個月，13-28週）\n• 胎兒快速成長階段\n• 器官逐漸發育、體重增加\n\n第四階段：第三孕期（懷孕7月到出生，29-40週）\n• 胎兒器官成熟關鍵期\n• 寶寶骨骼快速發育\n\n第五階段：哺乳期（產後42天黃金期）\n• 媽媽生理機能調整恢復\n• 母乳營養成分需充足供給"
+                        "icon": "🥩",
+                        "title": "鐵質 (Iron)",
+                        "content": "預防孕期貧血與提供胎兒發育所需。\n孕中後期需求量大增，每日建議 45 毫克。\n💡 技巧：搭配維生素 C 可增加吸收率。"
                     },
                     {
-                        "id": "slide-3",
+                        "id": "nutrition-table",
                         "type": "table",
-                        "title": "備孕期營養補充重點（養卵90天）",
+                        "icon": "📊",
+                        "title": "三階段營養重點",
                         "data": {
-                            "headers": ["營養素", "建議劑量", "主要功效", "食物來源/補充方式"],
+                            "headers": ["時期", "重點營養", "建議增加"],
                             "rows": [
-                                ["葉酸", "600微克/天", "幫助卵子品質、預防神經管缺損", "深綠色蔬菜、豆類、保健食品"],
-                                ["Q10", "60-300mg/天", "抗氧化、提升卵子質量、提高著床成功率", "保健食品補充（食物中難以足）"],
-                                ["鐵", "15-20mg/天", "防止不排卵、改善卵子品質", "紅肉、蛋黃、黑豆、紅蘿蔔"],
-                                ["鈣", "800-1000mg/天", "供應寶寶骨骼發育基礎", "牛奶、起司、豆製品、綠葉蔬菜"],
-                                ["Omega-3\n(DHA+EPA)", "300mg/天", "提高免疫力、促進寶寶大腦發育", "魚油、藻油、深海魚"],
-                                ["綜合維他命", "每日1次", "補充維生素A、E、B群及礦物質", "多彩食物、保健食品"]
+                                ["第一階段 (1-12週)", "葉酸、碘、鋅", "總熱量不需增加"],
+                                ["第二階段 (13-28週)", "鈣、維生素 D", "+300 大卡"],
+                                ["第三階段 (29-40週)", "鐵質、DHA", "+300 大卡"]
                             ]
                         }
                     },
                     {
-                        "id": "slide-4",
-                        "type": "image",
-                        "title": "備孕期葉酸高含量食物排行",
-                        "url": "https://via.placeholder.com/800x400?text=Folic+Acid+Rich+Foods+Chart",
-                        "alt": "葉酸含量排行圖表",
-                        "caption": "資料來源：台灣衛生福利部食品營養成分資料庫",
-                        "width": "800px",
-                        "height": "400px"
-                    },
-                    {
-                        "id": "slide-5",
-                        "type": "table",
-                        "title": "第一孕期營養補充重點（懷孕1-3個月）",
-                        "data": {
-                            "headers": ["營養素", "建議劑量", "主要功效", "補充建議"],
-                            "rows": [
-                                ["葉酸", "800微克/天", "幫助神經系統發育、降低神經管畸形與唇裂", "需達600微克/天，飲食可提供部分，保健食品補充400-500微克最合適"],
-                                ["鈣", "1000mg/天", "維持寶寶骨骼與牙齒發育、幫助肌肉與心臟收縮", "搭配維生素D（促進吸收）與鎂（減緩抽筋）\n⚠️ 避免碳酸鈣→易脹氣、加重孕吐、導致便秘"],
-                                ["綜合維他命\n+礦物質", "每日1次", "維生素B1-B12、D、碘、鐵、鋅等孕期必需素", "外食族尤其需要補充以確保營養均衡"]
-                            ]
-                        }
-                    },
-                    {
-                        "id": "slide-6",
-                        "type": "callout",
-                        "severity": "warning",
-                        "title": "⚠️ 第一孕期鈣質補充注意事項",
-                        "content": "❌ 避免碳酸鈣：\n   • 較容易脹氣\n   • 可能增加孕吐不適感\n   • 容易導致孕婦便秘\n\n✓ 建議選擇：\n   • 天然萃取鈣源\n   • 搭配複方維生素D（促進吸收）\n   • 搭配鎂（穩定神經、減緩孕期抽筋）"
-                    },
-                    {
-                        "id": "slide-7",
-                        "type": "table",
-                        "title": "第二孕期營養補充重點（懷孕4-6個月）",
-                        "data": {
-                            "headers": ["營養素", "建議劑量", "主要功效", "補充方式"],
-                            "rows": [
-                                ["鈣", "1000mg/天", "建構寶寶骨骼與牙齒、預防妊娠子癲前症（多發於懷孕20週後）", "搭配維生素D與鎂的天然萃取鈣源\n避免碳酸鈣"],
-                                ["Omega-3\n(DHA+EPA)", "300mg/天\n(DHA+EPA)", "促進胎兒腦部神經、視網膜細胞及神經組織發育\n降低早產機率\n幫助母親緩和記憶力下降與產後憂鬱", "魚油（需確認無重金屬檢測）或藻油\n⚠️ EPA有抑制血小板凝集作用，預產期前30天停用"],
-                                ["綜合維他命\n+礦物質", "每日1次", "維生素B1-B12、D、碘、鐵、鋅等", "保健食品補充確保營養完整"]
-                            ]
-                        }
-                    },
-                    {
-                        "id": "slide-8",
-                        "type": "text",
-                        "title": "第二孕期要點：認識子癲前症",
-                        "content": "🔴 什麼是妊娠子癲前症？\n• 孕婦特有的高血壓疾病\n• 多發生在懷孕20週後\n• 可能危及母子生命\n\n💊 足量鈣質補充的預防作用\n• 鈣質有助於調節血壓\n• 預防子癲前症發生\n• 對孕婦和胎兒都很重要\n\n⚠️ 異常徵兆需立即就醫\n• 血壓突然升高\n• 頭痛、視線模糊\n• 腹部疼痛"
-                    },
-                    {
-                        "id": "slide-9",
-                        "type": "table",
-                        "title": "第三孕期營養補充重點（懷孕7月-出生）",
-                        "data": {
-                            "headers": ["營養素", "建議劑量", "主要功效", "補充建議"],
-                            "rows": [
-                                ["鈣", "1200mg/天（增加量）", "支持寶寶骨骼與牙齒快速發育\n寶寶所需鈣質80%以上在最後3個月獲得\n如同馬拉松的最後衝刺", "搭配維生素D與鎂的天然萃取鈣源\n避免碳酸鈣"],
-                                ["卵磷脂", "1200mg/天", "補充寶寶發育所需養分\n降低產後塞奶機率\n幫助乳汁順利分泌", "雞蛋、五穀類、大豆、動物肝臟\n或保健食品補充"],
-                                ["綜合維他命\n+礦物質", "每日1次", "維生素B1-B12、D、碘、鐵、鋅等全孕期重要素", "確保營養持續均衡"]
-                            ]
-                        }
-                    },
-                    {
-                        "id": "slide-10",
-                        "type": "callout",
-                        "severity": "info",
-                        "title": "💡 認識卵磷脂的角色",
-                        "content": "卵磷脂在第三孕期的重要性：\n\n✓ 成分：人體細胞膜的重要成分\n✓ 功效：幫助脂肪乳化，降低乳汁濃稠度\n✓ 作用：預防（而非治療）塞奶\n✓ 時機：建議從懷孕第7個月開始補充\n\n⚠️ 重要提醒：\n卵磷脂只能降低塞奶風險，無法解決已發生的塞奶\n預防塞奶最重要的還是勤於擠奶、哺乳"
-                    },
-                    {
-                        "id": "slide-11",
-                        "type": "text",
-                        "title": "第三孕期重點：體重管理",
-                        "content": "第三孕期是寶寶器官發展與成熟的關鍵期\n\n👶 胎兒發展：\n• 器官快速成熟\n• 體重迅速增加\n\n👩 孕婦管理重點：\n• 維持均衡飲食\n• 適度補充營養素\n• 做好體重管理\n• 避免過度進補\n\n💪 建議作法：\n• 定期產檢監測體重\n• 適度運動（散步等安全運動）\n• 營養補充需適量，不是盲目多吃"
-                    },
-                    {
-                        "id": "slide-12",
-                        "type": "table",
-                        "title": "哺乳期營養補充重點（產後～42天黃金期）",
-                        "data": {
-                            "headers": ["營養素", "建議劑量", "主要功效", "為什麼重要"],
-                            "rows": [
-                                ["鈣", "1200mg/天", "維持母乳中鈣質含量\n預防產後骨質流失", "嬰兒透過母乳吸取鈣質，母親需補充足量\n搭配維生素D、K2、鎂效果更佳"],
-                                ["鐵", "45mg/天\n(產後兩個月)", "補充分娩時大量失血\n預防產後掉髮\n恢復紅血球數量", "哺乳時也會有鐵質分泌\n建議產後2個月內加強補充"],
-                                ["卵磷脂", "1200mg/天", "透過乳汁提供寶寶發育養分\n幫助順利哺乳、減少塞奶", "延續懷孕期的補充\n可從天然食物或保健食品取得"],
-                                ["Omega-3\n(DHA+EPA)", "300mg/天", "透過母乳促進寶寶大腦發育\n幫助母親緩解產後記憶力下降\n降低產後憂鬱風險", "藻油或魚油（需確認無重金屬檢測）"],
-                                ["綜合維他命\n+礦物質", "每日1次", "確保母乳營養完整\n促進產後身材與體力恢復", "寶寶營養仰賴母乳成分"]
-                            ]
-                        }
-                    },
-                    {
-                        "id": "slide-13",
-                        "type": "callout",
-                        "severity": "success",
-                        "title": "✅ 產後黃金42天護理重點",
-                        "content": "產後42天是媽媽生理機能調整恢復的黃金期\n\n國人「坐月子」習俗的科學基礎：\n\n✓ 充足的均衡營養攝取\n✓ 適度的保健食品補充\n✓ 充足的休息與睡眠\n✓ 適當的活動恢復\n\n💪 媽媽的健康 = 寶寶最好的禮物\n• 媽媽體力充沛，哺乳更順利\n• 媽媽營養充足，母乳品質更好\n• 媽媽身心健康，寶寶發育更好"
-                    },
-                    {
-                        "id": "slide-14",
-                        "type": "chart",
-                        "title": "各孕期葉酸建議攝取量對比",
-                        "chartType": "bar",
-                        "data": {
-                            "labels": ["備孕期", "孕期(1-3個月)", "孕期(4-6個月)", "孕期(7月-出生)", "哺乳期"],
-                            "values": [600, 800, 600, 600, 500],
-                            "label": "葉酸攝取量(微克/天)"
-                        }
-                    },
-                    {
-                        "id": "slide-15",
-                        "type": "image",
-                        "title": "孕期鈣質補充劑量遞進圖",
-                        "url": "https://via.placeholder.com/800x400?text=Calcium+Supplementation+Schedule",
-                        "alt": "孕期各階段鈣質補充劑量",
-                        "caption": "第一孕期：1000mg → 第二孕期：1000mg → 第三孕期：1200mg → 哺乳期：1200mg",
-                        "width": "800px",
-                        "height": "400px"
-                    },
-                    {
-                        "id": "slide-16",
-                        "type": "text",
-                        "title": "Omega-3（魚油/藻油）補充重要提醒",
-                        "content": "🐟 魚油 vs 🌊 藻油\n\n比較項目           魚油              藻油\n來源              深海魚           海洋微藻\n重金屬風險        需檢測            較低\n腥味              有                無\n素食者適用        否                是\n\n⚠️ EPA的特殊注意事項：\n• EPA具有抑制血小板凝集作用\n• 建議最晚預產期前30天左右停止補充\n• 以降低產後出血風險\n\n✓ WHO建議劑量：\n• 孕期：每日200-300mg DHA\n• 建議選擇不含EPA的純DHA產品"
-                    },
-                    {
-                        "id": "slide-17",
-                        "type": "text",
-                        "title": "保健食品選擇三大原則",
-                        "content": "當無法從飲食完全補充時，保健食品是很好的輔助方式\n\n原則一：劑量適當\n✓ 葉酸：400-500微克\n✓ 不要盲目追求高劑量\n✓ 葉酸上限1000微克/天\n\n原則二：有效複方成分\n✓ 維生素B6、B12與葉酸一起效果更佳\n✓ 鈣搭配維生素D促進吸收\n✓ 一次補充多種關鍵營養更便利\n\n原則三：品質保障\n✓ 選擇大廠牌、經過檢驗\n✓ 有衛生福利部食品業者登錄\n✓ 有SGS或其他認證\n✓ 標示完整清楚"
-                    },
-                    {
-                        "id": "slide-18",
-                        "type": "text",
-                        "title": "容易缺乏營養的高風險族群",
-                        "content": "以下族群特別需要營養補充：\n\n🚨 高風險族群特徵：\n\n1️⃣ 飲食習慣不良\n   • 愛吃蛋糕甜點\n   • 常吃速食與加工品\n   • 挑食不愛吃蔬菜\n   • 特別是不吃深綠色蔬菜\n\n2️⃣ 生活型態特殊\n   • 外食族\n   • 工作繁忙無法準備均衡飲食\n   • 飲食不規律\n\n3️⃣ 特殊健康狀況\n   • 曾生過神經管缺損胎兒\n   • 孕前罹患糖尿病\n   • 服用抗癲癇藥物\n   • 需補充4000微克高劑量葉酸\n\n⚠️ 務必諮詢婦產科醫師或營養師"
-                    },
-                    {
-                        "id": "slide-19",
-                        "type": "text",
-                        "title": "葉酸缺乏會怎樣？常見症狀",
-                        "content": "孕婦葉酸缺乏症狀：\n• 想睡覺、易疲倦\n• 情緒不穩定\n• 腦袋模糊、容易忘東忘西\n• 提高貧血機率\n\n⚠️ 胎兒葉酸缺乏的嚴重後果：\n\n1. 神經管缺損（脊柱裂）\n   • 寶寶脊柱發育異常\n   • 可能導致下半身活動異常\n   • 嚴重時大小便失禁、無法走路、癱瘓\n   • 需要神經外科手術治療\n\n2. 唇顎裂\n   • 影響寶寶進食與言語發育\n\n3. 其他先天缺陷\n   • 心臟缺陷\n   • 泌尿道異常\n\n📊 統計：台灣約每10位育齡女性就有1位缺乏葉酸\n💡 永遠不嫌晚 - 任何時候開始補充都能幫助"
-                    },
-                    {
-                        "id": "slide-20",
-                        "type": "text",
-                        "title": "簡單方法獲得足量營養",
-                        "content": "❌ 別擔心太複雜，營養補充很簡單！\n\n📋 每天目標：\n\n深綠色蔬菜\n• 至少2個拳頭大\n• 推薦：菠菜、韭菜、紅莧菜、空心菜\n\n全榖雜糧\n• 選擇完整穀物\n• 推薦：鷹嘴豆、綠豆、紅藜、燕麥\n\n豆類製品\n• 黑豆、紅豆、毛豆\n• 豆腐、豆漿\n\n蛋白質食物\n• 推薦豬肝、雞肝（高葉酸）\n• 蛋、魚、肉\n\n堅果點心\n• 葵瓜子、花生、黑芝麻\n\n✅ 均衡飲食比專吃某一食物更好\n• 不要為了補葉酸只吃深綠蔬菜\n• 忽略其他營養素很危險"
-                    },
-                    {
-                        "id": "slide-21",
+                        "id": "quiz",
                         "type": "quiz",
-                        "title": "課後測驗 - 孕婦營養補充知識",
+                        "title": "知識檢測",
                         "questions": [
                             {
                                 "id": "q1",
-                                "question": "養卵的最佳時間是多久？",
-                                "options": [
-                                    "30天",
-                                    "60天",
-                                    "90天",
-                                    "120天"
-                                ],
-                                "correctAnswer": 2,
-                                "explanation": "健康的卵子生成大約需要90天，因此準備懷孕前90天是養卵關鍵期！透過均衡飲食、規律運動及保健食品補充能有效改善卵子品質。"
-                            },
-                            {
-                                "id": "q2",
-                                "question": "懷孕期間葉酸的建議攝取量是多少？",
-                                "options": [
-                                    "400微克/天",
-                                    "600微克/天",
-                                    "800微克/天",
-                                    "1000微克/天"
-                                ],
+                                "question": "哪種營養素可以幫助鐵質吸收？",
+                                "options": ["維生素 A", "維生素 C", "鈣質"],
                                 "correctAnswer": 1,
-                                "explanation": "根據國人膳食營養素參考攝取量，懷孕期間葉酸建議每日攝取600微克。備孕期為400微克，哺乳期為500微克。"
-                            },
-                            {
-                                "id": "q3",
-                                "question": "第三孕期建議的鈣質攝取量是多少？",
-                                "options": [
-                                    "800mg/天",
-                                    "1000mg/天",
-                                    "1200mg/天",
-                                    "1500mg/天"
-                                ],
-                                "correctAnswer": 2,
-                                "explanation": "第三孕期（懷孕7個月-出生）建議鈣質攝取量為1200mg/天。因為寶寶所需的鈣質80%以上是在最後3個月獲得，對骨骼發育至關重要。"
-                            },
-                            {
-                                "id": "q4",
-                                "question": "以下何者應避免選擇作為孕期鈣質補充？",
-                                "options": [
-                                    "天然萃取鈣",
-                                    "碳酸鈣",
-                                    "螯合鈣",
-                                    "檸檬酸鈣"
-                                ],
-                                "correctAnswer": 1,
-                                "explanation": "碳酸鈣容易脹氣、可能增加孕吐不適、容易導致便秘。建議選擇天然萃取鈣源，搭配維生素D與鎂效果更佳。"
-                            },
-                            {
-                                "id": "q5",
-                                "question": "卵磷脂在哺乳期的主要作用是什麼？",
-                                "options": [
-                                    "增加乳量",
-                                    "防止乳腺炎",
-                                    "幫助脂肪乳化、降低乳汁濃稠度",
-                                    "殺死細菌"
-                                ],
-                                "correctAnswer": 2,
-                                "explanation": "卵磷脂是人體細胞膜的重要成分，具有幫助脂肪乳化、降低乳汁濃稠度的作用，可以預防（而非治療）塞奶。預防塞奶最重要還是勤於擠奶。"
-                            },
-                            {
-                                "id": "q6",
-                                "question": "EPA（魚油中的成分）在何時應停止補充？",
-                                "options": [
-                                    "懷孕3個月時",
-                                    "預產期前30天",
-                                    "分娩後",
-                                    "不需要停止"
-                                ],
-                                "correctAnswer": 1,
-                                "explanation": "EPA具有抑制血小板凝集的作用，建議最晚預產期30天前左右就暫停補充，以降低產後出血風險。"
+                                "explanation": "維生素 C 可以將食物中的非血紅素鐵轉化為更易吸收的形式。"
                             }
                         ]
                     },
                     {
-                        "id": "slide-22",
-                        "type": "text",
-                        "title": "藥師在孕期營養諮詢中的角色",
-                        "content": "💊 藥師提供的專業價值：\n\n1️⃣ 營養素相互作用的評估\n   • 哪些營養素搭配效果更好\n   • 哪些成分可能相互干擾\n   • 保健食品與藥物的交互作用\n\n2️⃣ 保健食品的專業建議\n   • 劑量是否適當\n   • 品質是否有保障\n   • 是否有不必要的重複\n\n3️⃣ 個人化的營養規劃\n   • 根據孕期階段調整\n   • 根據個人體質建議\n   • 考慮特殊飲食限制\n\n4️⃣ 監測與調整\n   • 追蹤補充效果\n   • 觀察是否有不適症狀\n   • 定期評估是否需要調整\n\n5️⃣ 健康教育\n   • 解釋為什麼需要補充\n   • 說明補充時機\n   • 提供飲食建議\n\n📱 透過IG平台持續教育\n   • 分享簡潔易懂的營養知識\n   • 解答常見疑惑\n   • 建立顧客信任與忠誠度"
-                    },
-                    {
-                        "id": "slide-23",
-                        "type": "text",
-                        "title": "IG內容規劃建議",
-                        "content": "🎯 適合發佈在藥局IG的內容方向：\n\n貼文主題：\n🔹 每週一營養素\n   • Monday: 葉酸小知識\n   • Wednesday: 鈣質補充秘訣\n   • Friday: 媽媽見證分享\n\n🔹 孕期營養檢查表\n   • 各階段營養補充清單\n   • 一週進度追蹤\n   • 互動問卷調查\n\n🔹 常見Q&A系列\n   • 葉酸什麼時候吃最好？\n   • 魚油要吃到何時？\n   • 可以同時吃多種補充品嗎？\n\n🔹 食物推薦系列\n   • 高葉酸食物清單\n   • 月子餐食譜分享\n   • 親子營養料理\n\n🔹 專業資訊分享\n   • 新研究與臨床試驗\n   • 衛生部最新建議\n   • 過來人媽媽心路\n\n💡 提示：搭配Reels短影片效果更佳\n   • 30秒營養小知識\n   • 保健食品使用教學\n   • 真實客戶見證"
-                    },
-                    {
-                        "id": "slide-24",
-                        "type": "accordion",
-                        "title": "常見問題解答",
+                        "id": "summary",
+                        "type": "checklist",
+                        "icon": "🥗",
+                        "title": "均衡飲食小提醒",
                         "items": [
-                            {
-                                "title": "Q：我沒有計畫懷孕，需要補充葉酸嗎？",
-                                "content": "A：是的。葉酸缺乏會影響女性的貧血風險，對日常生活也有幫助。即使沒有計畫生育，平時也應關注葉酸攝取。這樣若意外懷孕，也能減少對寶寶的擔心。"
-                            },
-                            {
-                                "title": "Q：發現懷孕已經1-2個月才開始補葉酸會太晚嗎？",
-                                "content": "A：不會太晚！雖然理想情況是懷孕前3個月就開始補充，但懷孕的發育是持續進行的。只要有意識到要吃葉酸，永遠不嫌晚。千萬不要因為發現晚就輕言放棄。"
-                            },
-                            {
-                                "title": "Q：孕婦可以同時補充多種保健食品嗎？",
-                                "content": "A：可以，但需要謹慎。建議選擇為孕婦設計的複方綜合維他命，一次補充多種關鍵營養素，可避免重複補充。若有特殊需求，最好諮詢藥師或醫師是否有相互干擾。"
-                            },
-                            {
-                                "title": "Q：葉酸早上吃還是晚上吃比較好？",
-                                "content": "A：沒有特定時間要求。早上或晚上、空腹或餐後都可以。但若想減少對腸胃的刺激，可考慮於早餐後30分鐘內補充。重點是養成長期固定的補充習慣。"
-                            },
-                            {
-                                "title": "Q：卵磷脂可以預防塞奶嗎？",
-                                "content": "A：卵磷脂可以降低塞奶機率，但無法預防或治療已發生的塞奶。預防塞奶最重要的還是勤於哺乳、定時擠奶。若已發生塞奶，需先疏通乳腺才行。"
-                            },
-                            {
-                                "title": "Q：預產期前需要停止什麼補充品？",
-                                "content": "A：建議預產期前30天左右停止補充含EPA的魚油，因為EPA有抑制血小板凝集的作用，可能增加產後出血風險。但不含EPA的純DHA藻油可以繼續補充。"
-                            },
-                            {
-                                "title": "Q：懷孕時可以繼續吃一般綜合維他命嗎？",
-                                "content": "A：不建議。一般綜合維他命的配方未必適合孕婦需求。建議選擇專門為孕婦設計的孕婦綜合維他命，才能確保劑量和成分都符合孕期需求。"
-                            },
-                            {
-                                "title": "Q：產後要持續補充卵磷脂多久？",
-                                "content": "A：建議在哺乳期全程持續補充卵磷脂，劑量維持1200mg/天。特別是前3個月，預防塞奶很重要。若後續無塞奶問題，可依個人狀況調整。"
-                            }
+                            "每日五蔬果",
+                            "避免攝取生食或未洗淨蔬菜",
+                            "攝取足夠水分",
+                            "定期產檢並諮詢營養師"
                         ]
-                    },
-                    {
-                        "id": "slide-25",
-                        "type": "callout",
-                        "severity": "success",
-                        "title": "✨ 核心重點總結",
-                        "content": "孕期營養補充的核心原則：\n\n🎯 五個階段，不同需求\n   • 備孕→第一孕期→第二孕期→第三孕期→哺乳期\n   • 每個階段營養補充策略不同\n\n🎯 葉酸最重要\n   • 懷孕前3個月開始補充\n   • 全孕期與哺乳期都要繼續\n   • 預防神經管缺損的關鍵\n\n🎯 鈣質逐階段遞增\n   • 前期1000mg→後期1200mg\n   • 搭配維生素D效果加倍\n\n🎯 均衡飲食是基礎\n   • 保健食品是輔助，非替代\n   • 深綠色蔬菜、豆類、堅果都是好選擇\n\n🎯 專業諮詢很重要\n   • 向藥師、醫師或營養師詢問\n   • 個人化的建議最有效\n\n❤️ 媽媽的健康 = 寶寶最好的禮物"
-                    },
-                    {
-                        "id": "slide-26",
-                        "type": "text",
-                        "title": "參考資料與延伸學習",
-                        "content": "📚 官方資源：\n• 衛生福利部國民健康署\n• 孕產婦關懷網站\n• 孕產婦關懷諮詢專線：0800-870-870\n\n📊 最新臨床證據：\n• WHO（世界衛生組織）孕期營養建議\n• ACOG（美國婦產科學會）指南\n• 台灣國人膳食營養素參考攝取量\n\n🏥 專業諮詢管道：\n• 婦產科醫師\n• 營養師\n• 社區藥師（like you!）\n\n💊 保健食品查詢：\n• 衛生福利部食品業者登錄平台\n• 產品SGS/檢驗認證\n• 完整成分標示"
-                    },
-                    {
-                        "id": "slide-27",
-                        "type": "title",
-                        "title": "感謝聆聽！",
-                        "subtitle": "有任何營養補充問題，歡迎諮詢我們的專業藥師",
-                        "meta": {
-                            "contactInfo": "藥局地址 / 電話 / 官方IG",
-                            "callToAction": "預約免費營養諮詢"
-                        }
                     }
                 ];
-
-                // Simulate loading delay
-                setTimeout(() => {
-                    setSlides(slidesData);
-                    setLoading(false);
-                }, 300);
+                setSlides(slidesData);
+                setLoading(false);
             }, []);
 
-            const goToNextSlide = () => {
-                setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
-            };
-
-            const goToPreviousSlide = () => {
-                setCurrentSlide((prev) => Math.max(prev - 1, 0));
-            };
-
-            // Keyboard navigation
             useEffect(() => {
-                const handleKeyDown = (event) => {
-                    if (event.key === 'ArrowRight') {
-                        goToNextSlide();
-                    } else if (event.key === 'ArrowLeft') {
-                        goToPreviousSlide();
-                    }
-                };
-                window.addEventListener('keydown', handleKeyDown);
-                return () => window.removeEventListener('keydown', handleKeyDown);
-            }, [slides.length, goToNextSlide, goToPreviousSlide]);
+                if (!loading && slides.length > 0 && window.initSlides) {
+                    setTimeout(window.initSlides, 100);
+                }
+            }, [loading, slides]);
 
-
-            if (loading) {
-                return (
-                    <div className="presentation-container">
-                        <h1>加載中...</h1>
-                    </div>
-                );
-            }
-
-            if (slides.length === 0) {
-                return (
-                    <div className="presentation-container">
-                        <h1>沒有可顯示的投影片。</h1>
-                    </div>
-                );
-            }
-
+            if (loading) return <div className="flex h-screen items-center justify-center text-emerald-800 font-bold">載入中...</div>;
             return (
-                <div className="presentation-container">
-                    {slides.map((slide, index) => (
-                        <div
-                            key={slide.id}
-                            className={`slide ${index === currentSlide ? 'active' : (index < currentSlide ? 'previous' : 'next')}`}
-                        >
-                            <SlideRenderer slide={slide} />
+                <div className="slide-container" id="container">
+                    {slides.map((s, idx) => (
+                        <div key={idx} className={`slide ${s.type === 'pdf' ? 'fullscreen' : ''}`}>
+                            <SlideRenderer slide={s} />
                         </div>
                     ))}
-
-                    <button
-                        className="nav-button prev-button"
-                        onClick={goToPreviousSlide}
-                        disabled={currentSlide === 0}
-                    >
-                        &lt;
-                    </button>
-                    <button
-                        className="nav-button next-button"
-                        onClick={goToNextSlide}
-                        disabled={currentSlide === slides.length - 1}
-                    >
-                        &gt;
-                    </button>
                 </div>
             );
         };
-
-        const container = document.getElementById('root');
-        const root = createRoot(container);
-        root.render(<App />);
+        createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
+
 </html>

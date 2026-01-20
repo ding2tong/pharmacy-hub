@@ -18,7 +18,7 @@
 
 ---
 
-## HTML 基礎框架
+## HTML 基礎框架 (高質感 React 統一版)
 
 ```html
 <!DOCTYPE html>
@@ -31,19 +31,250 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <!-- 樣式在這裡，保持現有 CSS 不變 -->
-    <style>
-        /* 完整的 CSS 複製自現有樣板，保持不變 */
-    </style>
+    <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
+    <div class="progress-bar" id="progress"></div>
+    <div class="nav-btn prev" onclick="moveSlide(-1)">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    </div>
+    <div class="nav-btn next" onclick="moveSlide(1)">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </div>
+    <div class="font-controls">
+        <button class="font-btn" onclick="changeFontSize(-0.1)" title="更小">A-</button>
+        <button class="font-btn" onclick="changeFontSize(0.1)" title="更大">A+</button>
+    </div>
+    <div class="slide-indicator" id="dots"></div>
+
     <div id="root"></div>
+
+    <script src="../slides.js"></script>
     <script type="text/babel">
-        <!-- React 代碼在這裡，只修改 slidesData -->
+        const { useState, useEffect, useRef } = React;
+        const { createRoot } = ReactDOM;
+
+        // --- 組件庫 (Modern Premium 版) ---
+        
+        const ChartComponent = ({ data, chartType }) => {
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+            useEffect(() => {
+                if (chartInstance.current) chartInstance.current.destroy();
+                const ctx = chartRef.current.getContext('2d');
+                chartInstance.current = new Chart(ctx, {
+                    type: chartType,
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: data.label || '數據',
+                            data: data.values,
+                            backgroundColor: chartType === 'pie' ? ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#ecfdf5'] : '#10b981',
+                            borderColor: '#ffffff',
+                            borderWidth: 3
+                        }]
+                    },
+                    options: { 
+                        responsive: true, maintainAspectRatio: false, 
+                        plugins: { legend: { labels: { font: { family: 'Inter', size: 12 }, usePointStyle: true, padding: 20 } } } 
+                    }
+                });
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+            }, [data, chartType]);
+            return <div className="h-72 mt-8 bg-black/5 p-6 rounded-[2.5rem]"><canvas ref={chartRef}></canvas></div>;
+        };
+
+        const TableComponent = ({ data }) => (
+            <div className="overflow-x-auto mt-8 rounded-[2rem] border border-black/5 shadow-sm bg-white/40 backdrop-blur-sm">
+                <table className="min-w-full divide-y divide-black/5">
+                    <thead>
+                        <tr className="bg-black/[0.02]">
+                            {data.headers.map((h, i) => <th key={i} className="px-8 py-5 text-left text-xs font-bold text-emerald-900/60 uppercase tracking-widest">{h}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/5">
+                        {data.rows.map((row, i) => (
+                            <tr key={i} className="hover:bg-white/40 transition-all duration-300">
+                                {row.map((c, j) => <td key={j} className="px-8 py-5 text-[1.05rem] text-gray-700 font-medium whitespace-pre-wrap">{c}</td>)}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+
+        const QuizComponent = ({ questions }) => {
+            const [answers, setAnswers] = useState({});
+            return (
+                <div className="quiz-container">
+                    {questions.map(q => (
+                        <div key={q.id} className="quiz-card">
+                            <h4 className="quiz-question">
+                                <span className="quiz-badge">Question</span>
+                                {q.question}
+                            </h4>
+                            <div className="quiz-options">
+                                {q.options.map((opt, idx) => {
+                                    const isSelected = answers[q.id] === idx;
+                                    const isCorrect = q.correctAnswer === idx;
+                                    const showResult = answers[q.id] !== undefined;
+                                    
+                                    let statusClass = "";
+                                    if (isSelected) {
+                                        statusClass = isCorrect ? "correct selected" : "incorrect selected";
+                                    } else if (showResult && isCorrect) {
+                                        statusClass = "revealed-correct";
+                                    }
+
+                                    return (
+                                        <button 
+                                            key={idx} 
+                                            disabled={showResult} 
+                                            onClick={() => setAnswers({ ...answers, [q.id]: idx })}
+                                            className={`quiz-option ${statusClass}`}
+                                        >
+                                            <span>{opt}</span>
+                                            {showResult && isCorrect && <span>✓</span>}
+                                            {isSelected && !isCorrect && <span>✗</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {answers[q.id] !== undefined && (
+                                <div className="quiz-explanation">
+                                    <span className="font-bold mr-2">Explanation:</span> {q.explanation}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        const CalloutComponent = ({ severity, title, content }) => {
+            const themes = { 
+                warning: 'bg-amber-50/80 border-amber-200 text-amber-950', 
+                info: 'bg-emerald-50/80 border-emerald-200 text-emerald-950', 
+                success: 'bg-emerald-100/80 border-accent/30 text-emerald-950', 
+                error: 'bg-red-50/80 border-red-200 text-red-950 shadow-red-100/50' 
+            };
+            const icons = { warning: '⚠️', info: '💡', success: '✅', error: '🚨' };
+            return (
+                <div className={`p-8 rounded-[3rem] border-2 mt-8 shadow-lg ${themes[severity] || themes.info} backdrop-blur-sm`}>
+                    <div className="flex items-center mb-3 text-xl font-extrabold uppercase tracking-tight">
+                        <span className="mr-3 text-2xl">{icons[severity] || icons.info}</span>{title}
+                    </div>
+                    <p className="text-[1.1rem] font-medium leading-relaxed opacity-80">{content}</p>
+                </div>
+            );
+        };
+
+        const AccordionComponent = ({ items }) => (
+            <div className="mt-8 space-y-4">
+                {items.map((item, idx) => (
+                    <details key={idx} className="group border border-white/50 rounded-[2.5rem] overflow-hidden bg-white/30 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/50">
+                        <summary className="p-6 cursor-pointer font-bold text-gray-900 list-none flex justify-between items-center group-open:bg-white/60">
+                            <span className="flex items-center text-lg">{item.title}</span>
+                            <span className="transition-transform duration-500 group-open:rotate-180 text-2xl opacity-40">↓</span>
+                        </summary>
+                        <div className="p-8 bg-white/40 text-gray-700 leading-relaxed whitespace-pre-wrap border-t border-white/50 text-[1.05rem]">
+                            {item.content}
+                        </div>
+                    </details>
+                ))}
+            </div>
+        );
+
+        const ChecklistComponent = ({ items }) => (
+            <ul className="mt-8 space-y-4">
+                {items.map((item, idx) => (
+                    <li key={idx} className="flex items-start p-6 bg-white/40 border border-white/60 rounded-[2.5rem] shadow-sm transition-all duration-300 hover:bg-white/60 hover:translate-x-1">
+                        <div className="mt-1 mr-5">
+                            <input type="checkbox" className="h-6 w-6 text-accent border-emerald-200 rounded-lg focus:ring-accent accent-accent transition-all cursor-pointer" />
+                        </div>
+                        <label className="text-gray-800 text-[1.1rem] font-semibold leading-relaxed">{item}</label>
+                    </li>
+                ))}
+            </ul>
+        );
+
+        const CalculatorComponent = ({ type }) => {
+            // [此處可根據需要實作計算機邏輯，例如 Mounjaro 補打邏輯]
+            return null;
+        };
+
+        const SlideRenderer = ({ slide }) => {
+            const containerStyles = { title: 'text-center', text: '' };
+            return (
+                <div className={slide.type === 'pdf' ? '' : `slide-content fade-in-up ${containerStyles[slide.type] || ''}`}>
+                    {slide.title && (
+                        <h2 className={`${slide.type === 'title' ? 'text-5xl' : 'text-3xl'} font-extrabold mb-6 flex items-center ${slide.type === 'title' ? 'justify-center' : ''} leading-tight`}>
+                            {slide.icon && slide.type !== 'title' && <span className="mr-5 drop-shadow-sm">{slide.icon}</span>}
+                            <span className="bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">{slide.title}</span>
+                        </h2>
+                    )}
+                    {slide.subtitle && <p className="text-2xl text-accent font-semibold tracking-wide text-center mb-10 opacity-80">{slide.subtitle}</p>}
+                    {slide.type === 'title' && <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-emerald-200 to-transparent mx-auto mb-10 rounded-full"></div>}
+                    {slide.content && <p className={`text-gray-700 ${slide.type === 'title' ? 'text-[1.15rem]' : 'text-[1.125rem]'} whitespace-pre-wrap leading-relaxed opacity-90`}>{slide.content}</p>}
+                    {slide.type === 'table' && <TableComponent data={slide.data} />}
+                    {slide.type === 'chart' && <ChartComponent data={slide.data} chartType={slide.chartType} />}
+                    {slide.type === 'quiz' && <QuizComponent questions={slide.questions} />}
+                    {slide.type === 'callout' && <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />}
+                    {slide.type === 'accordion' && <AccordionComponent items={slide.items} />}
+                    {slide.type === 'checklist' && <ChecklistComponent items={slide.items} />}
+                    {slide.type === 'calculator' && <CalculatorComponent type={slide.calculatorType} />}
+                    {slide.type === 'pdf' && (
+                        <iframe src={slide.url} className="pdf-full-frame" frameBorder="0"></iframe>
+                    )}
+                    {slide.type === 'image' && (
+                        <div className="mt-10 text-center">
+                            <div className="relative inline-block">
+                                <img src={slide.url} alt={slide.alt} className="mx-auto rounded-[3.5rem] shadow-2xl max-h-96 object-cover border-[8px] border-white/60 backdrop-blur-sm" />
+                                <div className="absolute inset-0 rounded-[3.5rem] ring-1 ring-black/5"></div>
+                            </div>
+                            {slide.caption && <p className="mt-6 text-sm text-gray-400 italic font-semibold tracking-wide">{slide.caption}</p>}
+                        </div>
+                    )}
+                    {slide.type === 'title' && <div className="mt-16 text-emerald-900/40 text-xs font-bold animate-pulse tracking-[0.3em] uppercase">← Swipe horizontally to explore →</div>}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [slides, setSlides] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const slidesData = [
+                    // ⬇️ 把用戶的 JSON 投影片陣列放這裡
+                ];
+                setSlides(slidesData);
+                setLoading(false);
+            }, []);
+
+            useEffect(() => {
+                if (!loading && slides.length > 0 && window.initSlides) {
+                    setTimeout(window.initSlides, 100);
+                }
+            }, [loading, slides]);
+
+            if (loading) return <div className="flex h-screen items-center justify-center text-emerald-800 font-bold">載入中...</div>;
+            return (
+                <div className="slide-container" id="container">
+                    {slides.map((s, idx) => (
+                        <div key={idx} className={`slide ${s.type === 'pdf' ? 'fullscreen' : ''}`}>
+                            <SlideRenderer slide={s} />
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+        createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
 </html>
 ```
+
 
 ---
 
@@ -282,8 +513,9 @@ useEffect(() => {
 
 - ✓ HTML 結構完整（DOCTYPE、html、head、body 都在）
 - ✓ 所有 CDN 腳本正確（React、Babel、Chart.js）
-- ✓ CSS 完整保留（沒有刪減）
+- ✓ 外部樣式引用預設連結至 `../styles.css`
 - ✓ slidesData 正確嵌入（JSON 格式正確）
+
 - ✓ 所有投影片都支援的類型（title、text、table 等）
 - ✓ 導航控制條存在（← / → 按鈕）
 - ✓ 鍵盤快捷鍵支援（← / → 箭頭鍵）

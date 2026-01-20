@@ -1,358 +1,384 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>猛健樂 (Mounjaro) 投影片衛教系統</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: 'Noto Sans TC', sans-serif;
-            overflow: hidden; /* 防止視窗捲動，由投影片容器控制 */
-            background-color: #064e3b;
-        }
-
-        .slide-container {
-            display: flex;
-            height: 100%;
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            will-change: transform;
-        }
-
-        .slide {
-            min-width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            box-sizing: border-box;
-            background-color: #f0fdf4;
-        }
-
-        .slide-content {
-            max-width: 800px;
-            width: 100%;
-            background: white;
-            padding: 3rem;
-            border-radius: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2);
-        }
-
-        .progress-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 6px;
-            background: #10b981;
-            transition: width 0.3s ease;
-            z-index: 100;
-        }
-
-        .nav-btn {
-            position: fixed;
-            bottom: 2rem;
-            background: white;
-            width: 3.5rem;
-            height: 3.5rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            cursor: pointer;
-            z-index: 60;
-            transition: all 0.2s;
-        }
-
-        .nav-btn:hover {
-            transform: scale(1.1);
-            background: #ecfdf5;
-        }
-
-        .nav-btn:active {
-            transform: scale(0.9);
-        }
-
-        .nav-btn.prev { left: 2rem; }
-        .nav-btn.next { right: 2rem; }
-
-        .slide-indicator {
-            position: fixed;
-            bottom: 2.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 0.5rem;
-            z-index: 60;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(6, 78, 59, 0.2);
-            transition: all 0.3s;
-        }
-
-        .dot.active {
-            width: 24px;
-            border-radius: 4px;
-            background: #059669;
-        }
-
-        /* 動態進場效果 */
-        .fade-in-up {
-            animation: fadeInUp 0.6s ease-out forwards;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="../styles.css">
 </head>
-<body>
 
+<body>
     <div class="progress-bar" id="progress"></div>
 
-    <!-- 導覽按鈕 -->
     <div class="nav-btn prev" onclick="moveSlide(-1)">
-        <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
     </div>
     <div class="nav-btn next" onclick="moveSlide(1)">
-        <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        <svg class="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
     </div>
 
-    <!-- 頁碼指示器 -->
+    <div class="font-controls">
+        <button class="font-btn" onclick="changeFontSize(-0.1)" title="更小">A-</button>
+        <button class="font-btn" onclick="changeFontSize(0.1)" title="更大">A+</button>
+    </div>
     <div class="slide-indicator" id="dots"></div>
 
-    <!-- 投影片容器 -->
-    <div class="slide-container" id="container">
-        
-        <!-- Slide 1: 封面 -->
-        <div class="slide">
-            <div class="slide-content text-center fade-in-up">
-                <div class="inline-block p-4 bg-emerald-100 rounded-full mb-6">
-                    <svg class="w-16 h-16 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.628.282a2 2 0 01-1.806 0l-.628-.282a6 6 0 00-3.86-.517l-2.387.477a2 2 0 00-1.022.547m0 0V19a2 2 0 002 2h10a2 2 0 002-2v-3.572M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
-                <h1 class="text-4xl font-extrabold text-emerald-800 mb-4">猛健樂 (Mounjaro)</h1>
-                <p class="text-xl text-emerald-600 mb-8 font-medium italic">Tirzepatide Injection</p>
-                <div class="h-1 w-20 bg-emerald-200 mx-auto mb-8"></div>
-                <p class="text-gray-500">用藥指導投影片</p>
-                <p class="text-sm font-bold text-emerald-700 mt-2">建祥藥局 專業諮詢</p>
-                <div class="mt-12 text-gray-400 text-sm animate-pulse">← 左右滑動開始 →</div>
+    <div id="root"></div>
+
+    <script src="../slides.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { createRoot } = ReactDOM;
+
+        // --- 組件定義 (內容渲染器) ---
+
+        const ChartComponent = ({ data, chartType }) => {
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+            useEffect(() => {
+                if (chartInstance.current) chartInstance.current.destroy();
+                const ctx = chartRef.current.getContext('2d');
+                chartInstance.current = new Chart(ctx, {
+                    type: chartType,
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: data.label || '數據',
+                            data: data.values,
+                            backgroundColor: chartType === 'pie' ? ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#ecfdf5'] : '#10b981',
+                            borderColor: '#ffffff',
+                            borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    font: { family: 'Inter', size: 12 },
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            }
+                        }
+                    }
+                });
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+            }, [data, chartType]);
+            return <div className="h-72 mt-8 bg-black/5 p-6 rounded-[2.5rem]"><canvas ref={chartRef}></canvas></div>;
+        };
+
+        const TableComponent = ({ data }) => (
+            <div className="overflow-x-auto mt-8 rounded-[2rem] border border-black/5 shadow-sm bg-white/40 backdrop-blur-sm">
+                <table className="min-w-full divide-y divide-black/5">
+                    <thead>
+                        <tr className="bg-black/[0.02]">
+                            {data.headers.map((h, i) => <th key={i} className="px-8 py-5 text-left text-xs font-bold text-emerald-900/60 uppercase tracking-widest">{h}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/5">
+                        {data.rows.map((row, i) => (
+                            <tr key={i} className="hover:bg-white/40 transition-all duration-300">
+                                {row.map((c, j) => <td key={j} className="px-8 py-5 text-[1.05rem] text-gray-700 font-medium whitespace-pre-wrap">{c}</td>)}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
-        </div>
+        );
 
-        <!-- Slide 2: 基本使用 -->
-        <div class="slide">
-            <div class="slide-content">
-                <h2 class="text-3xl font-bold text-emerald-800 mb-8 flex items-center">
-                    <span class="mr-4 text-4xl">🕒</span> 注射時間
-                </h2>
-                <div class="space-y-8">
-                    <div class="bg-emerald-50 p-8 rounded-3xl border-l-8 border-emerald-500">
-                        <p class="text-3xl font-bold text-emerald-900 mb-2">每週固定一天</p>
-                        <p class="text-xl text-emerald-700">任何時間皆可注射</p>
-                    </div>
-                    <ul class="text-lg text-gray-600 space-y-4 ml-2">
-                        <li class="flex items-center"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-3"></span> 不限空腹或飯後</li>
-                        <li class="flex items-center"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-3"></span> 建議設定手機提醒，避免遺忘</li>
-                    </ul>
+        const QuizComponent = ({ questions }) => {
+            const [answers, setAnswers] = useState({});
+            return (
+                <div className="quiz-container">
+                    {questions.map(q => (
+                        <div key={q.id} className="quiz-card">
+                            <h4 className="quiz-question">
+                                <span className="quiz-badge">Question</span>
+                                {q.question}
+                            </h4>
+                            <div className="quiz-options">
+                                {q.options.map((opt, idx) => {
+                                    const isSelected = answers[q.id] === idx;
+                                    const isCorrect = q.correctAnswer === idx;
+                                    const showResult = answers[q.id] !== undefined;
+
+                                    let statusClass = "";
+                                    if (isSelected) {
+                                        statusClass = isCorrect ? "correct selected" : "incorrect selected";
+                                    } else if (showResult && isCorrect) {
+                                        statusClass = "revealed-correct";
+                                    }
+
+                                    return (
+                                        <button
+                                            key={idx}
+                                            disabled={showResult}
+                                            onClick={() => setAnswers({ ...answers, [q.id]: idx })}
+                                            className={`quiz-option ${statusClass}`}
+                                        >
+                                            <span>{opt}</span>
+                                            {showResult && isCorrect && <span>✓</span>}
+                                            {isSelected && !isCorrect && <span>✗</span>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {answers[q.id] !== undefined && (
+                                <div className="quiz-explanation">
+                                    <span className="font-bold mr-2">Explanation:</span> {q.explanation}
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
-            </div>
-        </div>
+            );
+        };
 
-        <!-- Slide 3: 注射部位 -->
-        <div class="slide">
-            <div class="slide-content">
-                <h2 class="text-3xl font-bold text-emerald-800 mb-6 flex items-center">
-                    <span class="mr-4 text-4xl">📍</span> 注射位置
-                </h2>
-
-                    <div class="space-y-4">
-                        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                            <p class="font-bold text-emerald-800">1. 腹部</p>
-                            <p class="text-xs text-red-500 font-bold">避開肚臍周圍 5 公分</p>
-                        </div>
-                        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                            <p class="font-bold text-emerald-800">2. 大腿前側</p>
-                        </div>
-                        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                            <p class="font-bold text-emerald-800">3. 上臂後側</p>
-                        </div>
-                        <div class="p-4 bg-amber-50 rounded-2xl border border-amber-200">
-                            <p class="text-xs text-amber-800 font-bold">⚠️ 每次注射務必更換位置</p>
-                        </div>
+        const CalloutComponent = ({ severity, title, content }) => {
+            const themes = {
+                warning: 'bg-amber-50/80 border-amber-200 text-amber-950',
+                info: 'bg-emerald-50/80 border-emerald-200 text-emerald-950',
+                success: 'bg-emerald-100/80 border-accent/30 text-emerald-950',
+                error: 'bg-red-50/80 border-red-200 text-red-950 shadow-red-100/50'
+            };
+            const icons = { warning: '⚠️', info: '💡', success: '✅', error: '🚨' };
+            return (
+                <div className={`p-8 rounded-[3rem] border-2 mt-8 shadow-lg ${themes[severity] || themes.info} backdrop-blur-sm`}>
+                    <div className="flex items-center mb-3 text-xl font-extrabold uppercase tracking-tight">
+                        <span className="mr-3 text-2xl">{icons[severity] || icons.info}</span>{title}
                     </div>
-            </div>
-        </div>
-
-        <!-- Slide 4: 副作用 -->
-        <div class="slide">
-            <div class="slide-content">
-                <h2 class="text-3xl font-bold text-emerald-800 mb-8 flex items-center">
-                    <span class="mr-4 text-4xl">💊</span> 常見副作用
-                </h2>
-                <div class="grid gap-4">
-                    <div class="p-5 bg-gray-50 rounded-2xl border">
-                        <h3 class="font-bold text-xl text-emerald-700">腸胃道症狀</h3>
-                        <p class="text-gray-600 mt-1">噁心、腹瀉、消化不良、胃痛。</p>
-                        <p class="mt-3 text-sm font-bold bg-white p-3 rounded-lg text-emerald-600 inline-block border border-emerald-100">💡 對策：少量多餐、細嚼慢嚥</p>
-                    </div>
-                    <div class="p-5 bg-gray-50 rounded-2xl border">
-                        <h3 class="font-bold text-xl text-emerald-700">飽足感增加</h3>
-                        <p class="text-gray-600 mt-1">食慾顯著下降，此為藥物控制體重的正常反應。</p>
-                    </div>
-                    <div class="p-3 text-center text-sm text-gray-400">
-                        ※ 通常在幾週後會逐漸緩解
-                    </div>
+                    <p className="text-[1.1rem] font-medium leading-relaxed opacity-80">{content}</p>
                 </div>
-            </div>
-        </div>
+            );
+        };
 
-        <!-- Slide 5: 嚴重警訊 -->
-        <div class="slide">
-            <div class="slide-content bg-red-50 border-4 border-red-200">
-                <h2 class="text-3xl font-bold text-red-700 mb-8 flex items-center">
-                    <span class="mr-4 text-4xl">🚨</span> 立即就醫
-                </h2>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="flex items-start p-4 bg-white rounded-2xl shadow-sm">
-                        <span class="text-red-500 mr-4 text-xl">●</span>
-                        <div>
-                            <p class="font-bold text-red-600 text-lg">急性胰臟炎</p>
-                            <p class="text-sm text-gray-600">嚴重腹痛（延伸至背部）、持續嘔吐。</p>
+        const AccordionComponent = ({ items }) => (
+            <div className="mt-8 space-y-4">
+                {items.map((item, idx) => (
+                    <details key={idx} className="group border border-white/50 rounded-[2.5rem] overflow-hidden bg-white/30 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/50">
+                        <summary className="p-6 cursor-pointer font-bold text-gray-900 list-none flex justify-between items-center group-open:bg-white/60">
+                            <span className="flex items-center text-lg">{item.title}</span>
+                            <span className="transition-transform duration-500 group-open:rotate-180 text-2xl opacity-40">↓</span>
+                        </summary>
+                        <div className="p-8 bg-white/40 text-gray-700 leading-relaxed whitespace-pre-wrap border-t border-white/50 text-[1.05rem]">
+                            {item.content}
                         </div>
-                    </div>
-                    <div class="flex items-start p-4 bg-white rounded-2xl shadow-sm">
-                        <span class="text-red-500 mr-4 text-xl">●</span>
-                        <div>
-                            <p class="font-bold text-red-600 text-lg">嚴重過敏</p>
-                            <p class="text-sm text-gray-600">呼吸困難、臉部或喉嚨腫脹。</p>
-                        </div>
-                    </div>
-                    <div class="flex items-start p-4 bg-white rounded-2xl shadow-sm">
-                        <span class="text-red-500 mr-4 text-xl">●</span>
-                        <div>
-                            <p class="font-bold text-red-600 text-lg">低血糖症狀</p>
-                            <p class="text-sm text-gray-600">頭暈、冒冷汗、手抖、心悸。</p>
-                        </div>
-                    </div>
-                </div>
+                    </details>
+                ))}
             </div>
-        </div>
+        );
 
-        <!-- Slide 6: 補打計算機 -->
-        <div class="slide">
-            <div class="slide-content">
-                <h2 class="text-2xl font-bold text-emerald-800 mb-4">忘記注射怎麼辦？</h2>
-                <div class="bg-emerald-50 p-6 rounded-3xl mb-6 text-center">
-                    <p class="text-emerald-900 font-medium mb-4">請點選已延遲的時間：</p>
-                    <div class="flex justify-center gap-3 flex-wrap">
-                        <button onclick="calc(24)" class="px-5 py-3 bg-white rounded-xl shadow-sm font-bold text-emerald-700">1 天</button>
-                        <button onclick="calc(72)" class="px-5 py-3 bg-white rounded-xl shadow-sm font-bold text-emerald-700">3 天</button>
-                        <button onclick="calc(120)" class="px-5 py-3 bg-white rounded-xl shadow-sm font-bold text-emerald-700">5 天</button>
+        const ChecklistComponent = ({ items }) => (
+            <ul className="mt-8 space-y-4">
+                {items.map((item, idx) => (
+                    <li key={idx} className="flex items-start p-6 bg-white/40 border border-white/60 rounded-[2.5rem] shadow-sm transition-all duration-300 hover:bg-white/60 hover:translate-x-1">
+                        <div className="mt-1 mr-5">
+                            <input type="checkbox" className="h-6 w-6 text-accent border-emerald-200 rounded-lg focus:ring-accent accent-accent transition-all cursor-pointer" />
+                        </div>
+                        <label className="text-gray-800 text-[1.1rem] font-semibold leading-relaxed">{item}</label>
+                    </li>
+                ))}
+            </ul>
+        );
+
+        const CalculatorComponent = ({ type }) => {
+            if (type === 'mounjaro-delay') {
+                return (
+                    <div className="mt-8">
+                        <div className="bg-black/[0.03] p-10 rounded-[4rem] border border-white/60 text-center shadow-inner">
+                            <p className="text-gray-900 font-extrabold text-2xl mb-8">🗓️ 已延遲多久了？</p>
+                            <div className="flex justify-center gap-5 flex-wrap">
+                                {[24, 72, 120].map(h => (
+                                    <button key={h} onClick={() => {
+                                        const res = document.getElementById('calc-res');
+                                        res.classList.remove('hidden');
+                                        if (h <= 96) {
+                                            res.className = "mt-8 rounded-[3rem] p-8 border-2 bg-emerald-50/90 border-accent/40 text-emerald-950 font-bold shadow-xl animate-fade-in";
+                                            res.innerHTML = "✅ 建議補打<br><span class='text-sm font-normal opacity-70 mt-2 block'>發現後儘快補打，之後恢復原日期。</span>";
+                                        } else {
+                                            res.className = "mt-8 rounded-[3rem] p-8 border-2 bg-amber-50/90 border-amber-400/40 text-amber-950 font-bold shadow-xl animate-fade-in";
+                                            res.innerHTML = "⏩ 跳過此劑<br><span class='text-sm font-normal text-red-600 mt-2 block'>超過 4 天請跳過，不可打兩倍量！</span>";
+                                        }
+                                    }} className="px-10 py-5 bg-white hover:bg-accent hover:text-white border-2 border-white rounded-[1.8rem] shadow-md font-extrabold text-accent transition-all duration-300 hover:scale-110 active:scale-95">
+                                        {h / 24} 天
+                                    </button>
+                                ))}
+                            </div>
+                            <div id="calc-res" className="hidden"></div>
+                        </div>
+                        <p className="mt-8 text-sm text-gray-400 text-center italic font-medium opacity-60 px-10 leading-relaxed">
+                            💡 注：超過 4 天 (96 小時) 請跳過該劑。嚴禁一次注射雙倍劑量！
+                        </p>
                     </div>
-                </div>
-                <div id="res" class="hidden rounded-2xl p-6 border-2 text-center animate-bounce"></div>
-                <div class="mt-6 text-xs text-gray-400 text-center italic">
-                    註：超過 4 天 (96 小時) 請跳過該劑。不可一次注射雙倍量。
-                </div>
-            </div>
-        </div>
-
-        
-
-    </div>
-
-    <script>
-        let currentSlide = 0;
-        const container = document.getElementById('container');
-        const slides = document.querySelectorAll('.slide');
-        const dotsContainer = document.getElementById('dots');
-        const progress = document.getElementById('progress');
-
-        // 初始化指示點
-        slides.forEach((_, i) => {
-            const dot = document.createElement('div');
-            dot.className = `dot ${i === 0 ? 'active' : ''}`;
-            dot.onclick = () => goToSlide(i);
-            dotsContainer.appendChild(dot);
-        });
-
-        function updateUI() {
-            // 更新進度條
-            const percent = ((currentSlide) / (slides.length - 1)) * 100;
-            progress.style.width = percent + '%';
-
-            // 更新指示點
-            const dots = document.querySelectorAll('.dot');
-            dots.forEach((dot, i) => {
-                dot.className = `dot ${i === currentSlide ? 'active' : ''}`;
-            });
-
-            // 控制導覽按鈕顯示
-            document.querySelector('.prev').style.opacity = currentSlide === 0 ? '0' : '1';
-            document.querySelector('.next').style.opacity = currentSlide === slides.length - 1 ? '0' : '1';
-        }
-
-        function moveSlide(dir) {
-            currentSlide = Math.max(0, Math.min(slides.length - 1, currentSlide + dir));
-            container.style.transform = `translateX(-${currentSlide * 100}%)`;
-            updateUI();
-        }
-
-        function goToSlide(index) {
-            currentSlide = index;
-            container.style.transform = `translateX(-${currentSlide * 100}%)`;
-            updateUI();
-        }
-
-        // 觸控滑動支援 (平板/手機)
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        document.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, false);
-
-        document.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        }, false);
-
-        function handleSwipe() {
-            const threshold = 50;
-            if (touchEndX < touchStartX - threshold) moveSlide(1);
-            if (touchEndX > touchStartX + threshold) moveSlide(-1);
-        }
-
-        // 鍵盤支援
-        document.addEventListener('keydown', e => {
-            if (e.key === 'ArrowRight') moveSlide(1);
-            if (e.key === 'ArrowLeft') moveSlide(-1);
-        });
-
-        // 補打邏輯計算
-        function calc(h) {
-            const res = document.getElementById('res');
-            res.classList.remove('hidden');
-            if (h <= 96) {
-                res.className = "rounded-2xl p-6 border-2 bg-emerald-50 border-emerald-300 text-emerald-800 font-bold";
-                res.innerHTML = "✅ 建議補打<br><span class='text-sm font-normal'>發現後儘快補打，之後恢復原日期。</span>";
-            } else {
-                res.className = "rounded-2xl p-6 border-2 bg-amber-50 border-amber-300 text-amber-800 font-bold";
-                res.innerHTML = "⏩ 跳過此劑<br><span class='text-sm font-normal text-red-600'>超過 4 天請跳過，不可打兩倍量！</span>";
+                );
             }
-        }
+            return null;
+        };
 
-        updateUI();
+        const SlideRenderer = ({ slide }) => {
+            const containerStyles = { title: 'text-center', text: '' };
+
+            return (
+                <div className={slide.type === 'pdf' ? '' : `slide-content fade-in-up ${containerStyles[slide.type] || ''}`}>
+                    {slide.title && (
+                        <h2 className={`${slide.type === 'title' ? 'text-5xl' : 'text-3xl'} font-extrabold mb-6 flex items-center ${slide.type === 'title' ? 'justify-center' : ''} leading-tight`}>
+                            {slide.icon && slide.type !== 'title' && <span className="mr-5 drop-shadow-sm">{slide.icon}</span>}
+                            <span className="bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">
+                                {slide.title}
+                            </span>
+                        </h2>
+                    )}
+
+                    {slide.subtitle && <p className="text-2xl text-accent font-semibold tracking-wide text-center mb-10 opacity-80">{slide.subtitle}</p>}
+
+                    {slide.type === 'title' && <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-emerald-200 to-transparent mx-auto mb-10 rounded-full"></div>}
+
+                    {slide.content && <p className={`text-gray-700 ${slide.type === 'title' ? 'text-[1.15rem]' : 'text-[1.125rem]'} whitespace-pre-wrap leading-relaxed opacity-90`}>{slide.content}</p>}
+
+                    {slide.meta && <p className="text-sm font-bold text-accent/60 mt-8 text-center italic tracking-widest uppercase">{typeof slide.meta === 'string' ? slide.meta : JSON.stringify(slide.meta)}</p>}
+
+                    {slide.type === 'table' && <TableComponent data={slide.data} />}
+                    {slide.type === 'chart' && <ChartComponent data={slide.data} chartType={slide.chartType} />}
+                    {slide.type === 'quiz' && <QuizComponent questions={slide.questions} />}
+                    {slide.type === 'callout' && <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />}
+                    {slide.type === 'accordion' && <AccordionComponent items={slide.items} />}
+                    {slide.type === 'checklist' && <ChecklistComponent items={slide.items} />}
+                    {slide.type === 'calculator' && <CalculatorComponent type={slide.calculatorType} />}
+                    {slide.type === 'pdf' && (
+                        <iframe src={slide.url} className="pdf-full-frame" frameBorder="0"></iframe>
+                    )}
+                    {slide.type === 'image' && (
+                        <div className="mt-10 text-center">
+                            <div className="relative inline-block">
+                                <img src={slide.url} alt={slide.alt} className="mx-auto rounded-[3.5rem] shadow-2xl max-h-96 object-cover border-[8px] border-white/60 backdrop-blur-sm" />
+                                <div className="absolute inset-0 rounded-[3.5rem] ring-1 ring-black/5"></div>
+                            </div>
+                            {slide.caption && <p className="mt-6 text-sm text-gray-400 italic font-semibold tracking-wide">{slide.caption}</p>}
+                        </div>
+                    )}
+
+                    {slide.type === 'title' && <div className="mt-16 text-emerald-900/40 text-xs font-bold animate-pulse tracking-[0.3em] uppercase">← Swipe horizontally to explore →</div>}
+                </div>
+            );
+        };
+
+
+        // --- 主應用 ---
+
+        const App = () => {
+            const [slides, setSlides] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const slidesData = [
+                    {
+                        "id": "intro",
+                        "type": "title",
+                        "title": "Mounjaro (Tirzepatide)",
+                        "subtitle": "全新雙機轉 GLP-1/GIP 受體促效劑",
+                        "meta": "難度：Intermediate • 時長：10分鐘"
+                    },
+                    {
+                        "id": "mechanism",
+                        "type": "text",
+                        "icon": "🧬",
+                        "title": "藥理機轉",
+                        "content": "Mounjaro 是全球首個 GIP 及 GLP-1 受體雙重促效劑。\n它能同時模擬兩種天然腸泌素的作用，達成更強效的控糖與減重能力。"
+                    },
+                    {
+                        "id": "chart",
+                        "type": "chart",
+                        "title": "HbA1c 下降幅度比較",
+                        "chartType": "bar",
+                        "data": {
+                            "labels": ["對照組", "Mounjaro 5mg", "Mounjaro 10mg", "Mounjaro 15mg"],
+                            "values": [0.5, 2.1, 2.4, 2.6],
+                            "label": "HbA1c 下降百分比 (%)"
+                        }
+                    },
+                    {
+                        "id": "side-effects",
+                        "type": "table",
+                        "icon": "⚠️",
+                        "title": "常見副作用處理",
+                        "data": {
+                            "headers": ["副作用", "發生率", "處理建議"],
+                            "rows": [
+                                ["噁心", "15-20%", "少量多餐，避免油膩食物"],
+                                ["便秘", "5-10%", "增加膳食纖維攝取與水分"],
+                                ["腹瀉", "5-8%", "觀察脫水狀況，適度調整飲食"]
+                            ]
+                        }
+                    },
+                    {
+                        "id": "calc",
+                        "type": "calculator",
+                        "icon": "🧮",
+                        "title": "補打劑量計算機",
+                        "calculatorType": "mounjaro-delay"
+                    },
+                    {
+                        "id": "quiz",
+                        "type": "quiz",
+                        "title": "知識檢測",
+                        "questions": [
+                            {
+                                "id": "mq1",
+                                "question": "若延遲注射 Mounjaro 超過 4 天，應如何處理？",
+                                "options": ["立即補打兩倍量", "直接跳過該劑，之後恢復原日期", "不論延遲幾天都立即補打"],
+                                "correctAnswer": 1,
+                                "explanation": "根據 SOP，超過 4 天應跳過，不可補打兩倍劑量以避免嚴重副作用。"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "summary",
+                        "type": "checklist",
+                        "icon": "✅",
+                        "title": "使用重點回顧",
+                        "items": [
+                            "每週固定一天注射",
+                            "可選擇腹部、大腿或上臂",
+                            "副作用多隨時間減輕",
+                            "需合併飲食與運動"
+                        ]
+                    }
+                ];
+                setSlides(slidesData);
+                setLoading(false);
+            }, []);
+
+            useEffect(() => {
+                if (!loading && slides.length > 0 && window.initSlides) {
+                    setTimeout(window.initSlides, 100);
+                }
+            }, [loading, slides]);
+
+            if (loading) return <div className="flex h-screen items-center justify-center text-emerald-800 font-bold">載入中...</div>;
+            return (
+                <div className="slide-container" id="container">
+                    {slides.map((s, idx) => (
+                        <div key={idx} className={`slide ${s.type === 'pdf' ? 'fullscreen' : ''}`}>
+                            <SlideRenderer slide={s} />
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>
+
 </html>
