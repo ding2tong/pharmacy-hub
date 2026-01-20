@@ -89,7 +89,7 @@
                     <tbody className="divide-y divide-black/5">
                         {data.rows.map((row, i) => (
                             <tr key={i}>
-                                {row.map((c, j) => <td key={j}>{c}</td>)}
+                                {row.map((c, j) => <td key={j} className="whitespace-pre-wrap">{c}</td>)}
                             </tr>
                         ))}
                     </tbody>
@@ -172,7 +172,7 @@
                     <div className="flex items-center mb-3 text-xl font-extrabold uppercase tracking-tight">
                         <span className="mr-3 text-2xl">{icons[severity] || icons.info}</span>{title}
                     </div>
-                    <p className="text-[1.1rem] font-medium leading-relaxed opacity-80">{content}</p>
+                    <p className="text-[1.1rem] font-medium leading-relaxed opacity-80 whitespace-pre-wrap">{content}</p>
                 </div>
             );
         };
@@ -180,7 +180,7 @@
         const AccordionComponent = ({ items }) => (
             <div className="mt-8 space-y-4">
                 {items.map((item, idx) => (
-                    <details key={idx} className="group border border-white/50 rounded-[2.5rem] overflow-hidden bg-white/30 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/50">
+                    <details key={idx} open className="group border border-white/50 rounded-[2.5rem] overflow-hidden bg-white/30 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/50">
                         <summary className="p-6 cursor-pointer font-bold text-gray-900 list-none flex justify-between items-center group-open:bg-white/60">
                             <span className="flex items-center text-lg">{item.title}</span>
                             <span className="transition-transform duration-500 group-open:rotate-180 text-2xl opacity-40">↓</span>
@@ -330,77 +330,142 @@
                     {
                         "id": "intro",
                         "type": "title",
-                        "title": "猛健樂Mounjaro (Tirzepatide)",
-                        "subtitle": "全新雙機轉 GLP-1/GIP 受體促效劑",
-                        "meta": "難度：Intermediate • 時長：10分鐘"
+                        "title": "猛健樂 Mounjaro (Tirzepatide)",
+                        "subtitle": "用藥指導：血糖控制與體重管理",
+                        "meta": "成分：Tirzepatide (GIP/GLP-1 雙效受體促效劑)"
                     },
                     {
-                        "id": "mechanism",
+                        "id": "usage",
+                        "type": "text",
+                        "icon": "💉",
+                        "title": "使用方法與部位",
+                        "content": "• 注射頻率：每週固定一天注射一次。\n• 使用時間：隨時皆可（空腹或飯後）。\n• 注射部位：腹部（避開肚臍 5cm）、大腿前側或上臂後側。\n\n💡 提醒：每次注射應更換位置。"
+                    },
+                    {
+                        "id": "storage",
+                        "type": "table",
+                        "icon": "❄️",
+                        "title": "藥品儲存方式",
+                        "data": {
+                            "headers": ["狀態", "儲存建議"],
+                            "rows": [
+                                ["未開封", "2°C – 8°C 冰箱冷藏（切勿冷凍）"],
+                                ["外出/已取出", "室溫 (30°C 以下) 最多 30 天"],
+                                ["超過期限", "請直接丟棄處理"]
+                            ]
+                        }
+                    },
+                    {
+                        "id": "missed-dose",
+                        "type": "callout",
+                        "severity": "info",
+                        "title": "忘記注射處理方式",
+                        "content": "• 4 天內 (96 小時)：發現後儘快補打，之後恢復原訂日期。\n• 超過 4 天：直接跳過該劑，下個注射日再打。\n\n🚨 注意：切勿一次注射雙倍劑量！"
+                    },
+                    {
+                        "id": "mechanism-table",
                         "type": "table",
                         "icon": "🧬",
-                        "title": "猛間樂含有兩種腸泌素：GIP 與 GLP-1",
+                        "title": "雙重機轉作用",
                         "data": {
-                            "headers": ["腸泌素類型", "主要生理作用"],
+                            "headers": ["腸泌素", "生理作用"],
                             "rows": [
-                                ["GIP (胃抑胰多肽)", "提高胰島素敏感性、調節脂質代謝、減少脂肪發炎"],
-                                ["GLP-1 (類升糖素胜肽-1)", "抑制食慾 (飽足感)、延緩胃排空、抑制升糖素分泌"]
+                                ["GIP", "提高胰島素敏感性、調節脂質代謝"],
+                                ["GLP-1", "飽足感、延緩胃排空、抑制升糖素"]
                             ]
                         }
                     },
                     {
-                        "id": "chart",
-                        "type": "chart",
-                        "title": "HbA1c 下降幅度比較",
-                        "chartType": "bar",
-                        "data": {
-                            "labels": ["對照組", "Mounjaro 5mg", "Mounjaro 10mg", "Mounjaro 15mg"],
-                            "values": [0.5, 2.1, 2.4, 2.6],
-                            "label": "HbA1c 下降百分比 (%)"
-                        },
-                        "description": "糖化血色素 (HbA1c) 是衡量過去 2-3 個月平均血糖水準的指標。當血液中的葡萄糖與紅血球中的血紅蛋白結合時，就會形成 HbA1c。"
-                    },
-                    {
-                        "id": "side-effects",
-                        "type": "table",
-                        "icon": "⚠️",
-                        "title": "猛健樂常見副作用處理",
-                        "data": {
-                            "headers": ["副作用", "發生率", "處理建議"],
-                            "rows": [
-                                ["噁心", "15-20%", "少量多餐，避免油膩食物"],
-                                ["便秘", "5-10%", "增加膳食纖維攝取與水分"],
-                                ["腹瀉", "5-8%", "觀察脫水狀況，適度調整飲食"]
-                            ]
-                        }
-                    },
-                    {
-                        "id": "quiz",
-                        "type": "quiz",
-                        "title": "知識檢測",
-                        "questions": [
+                        "id": "side-effects-common",
+                        "type": "accordion",
+                        "icon": "🤢",
+                        "title": "常見副作用與應對",
+                        "items": [
                             {
-                                "id": "mq1",
-                                "question": "若延遲注射 Mounjaro 超過 4 天，應如何處理？",
-                                "options": ["立即補打兩倍量", "直接跳過該劑，之後恢復原日期", "不論延遲幾天都立即補打"],
-                                "correctAnswer": 1,
-                                "explanation": "根據 SOP，超過 4 天應跳過，不可補打兩倍劑量以避免嚴重副作用。"
+                                "title": "腸胃道不適 (最常見)",
+                                "content": "包含噁心、嘔吐、腹瀉、便秘、胃痛。\n建議：少量多餐、避開油膩及辛辣食物、進食速度放慢。"
+                            },
+                            {
+                                "title": "食慾與其他感受",
+                                "content": "飽脹感顯著、疲倦、頭痛、注射部位輕微紅腫。"
                             }
                         ]
                     },
                     {
-                        "id": "summary",
-                        "type": "checklist",
-                        "icon": "✅",
-                        "title": "使用重點回顧",
+                        "id": "side-effects-severe",
+                        "type": "callout",
+                        "severity": "error",
+                        "title": "🚨 嚴重副作用 (請立即就醫)",
+                        "content": "• 急性胰臟炎：嚴重腹痛（延伸至背部）伴隨頻繁嘔吐。\n• 嚴重過敏：呼吸困難、臉部喉嚨腫脹、嚴重紅疹。\n• 低血糖：冒冷汗、手抖、心跳加快。\n• 視力改變：視力突然模糊或衰退。"
+                    },
+                    {
+                        "id": "precautions",
+                        "type": "accordion",
+                        "icon": "⚠️",
+                        "title": "特別注意事項",
                         "items": [
-                            "每週固定一天注射",
-                            "可選擇腹部、大腿或上臂",
-                            "副作用多隨時間減輕",
-                            "需合併飲食與運動"
+                            {
+                                "title": "女性用藥注意事項",
+                                "content": "本藥可能使「口服避孕藥」失效。開始用藥或增量後的 4 週內，建議併用保險套等其他避孕方式。"
+                            },
+                            {
+                                "title": "禁忌症與警告",
+                                "content": "個人或家人曾患有甲狀腺髓質癌 (MTC) 或多發性內分泌腫瘤 (MEN 2) 者禁止使用。"
+                            },
+                            {
+                                "title": "水分補充",
+                                "content": "若有嚴重嘔吐或腹瀉，請務必多補充水分，預防脫水造成腎功能受損。"
+                            }
                         ]
+                    },
+                    {
+                        "id": "quiz",
+                        "type": "quiz",
+                        "title": "用藥知識小測驗",
+                        "questions": [
+                            {
+                                "id": "q1",
+                                "question": "若忘記注射 Mounjaro 超過 4 天，應如何處理？",
+                                "options": ["儘快補打一針", "跳過該劑，下個週期的原訂時間再打", "在原訂時間補打兩倍劑量"],
+                                "correctAnswer": 1,
+                                "explanation": "超過 4 天請直接跳過，嚴禁一次注射雙倍量以避免過強副作用。"
+                            },
+                            {
+                                "id": "q2",
+                                "question": "關於口服避孕藥，下列敘述何者正確？",
+                                "options": ["完全不影響藥效", "前 4 週建議併用其他避孕方式", "只需在注射當天避孕"],
+                                "correctAnswer": 1,
+                                "explanation": "因為 Mounjaro 會延緩胃排空，初期可能降低避孕藥效果，建議前 4 週併用物理性避孕。"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "end",
+                        "type": "title",
+                        "title": "專業服務 健康守護",
+                        "subtitle": "建祥藥局 HEALTH CARE",
+                        "meta": "有任何問題請諮詢現場藥師"
                     }
                 ];
-                setSlides(slidesData);
+
+                // --- 測驗一頁一題拆分邏輯 ---
+                const finalSlides = [];
+                slidesData.forEach(slide => {
+                    if (slide.type === 'quiz' && slide.questions && slide.questions.length > 1) {
+                        slide.questions.forEach((q, i) => {
+                            finalSlides.push({
+                                ...slide,
+                                id: `${slide.id}-q${i}`,
+                                title: `${slide.title} (${i + 1}/${slide.questions.length})`,
+                                questions: [q]
+                            });
+                        });
+                    } else {
+                        finalSlides.push(slide);
+                    }
+                });
+
+                setSlides(finalSlides);
                 setLoading(false);
             }, []);
 

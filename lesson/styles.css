@@ -705,3 +705,8 @@ tr:hover td {
         border-radius: 2rem;
     }
 }
+
+/* Utility Classes */
+.whitespace-pre-wrap {
+    white-space: pre-wrap !important;
+}

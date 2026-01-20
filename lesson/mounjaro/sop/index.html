@@ -78,7 +78,7 @@
                     <tbody>
                         {data.rows.map((row, i) => (
                             <tr key={i}>
-                                {row.map((c, j) => <td key={j}>{c}</td>)}
+                                {row.map((c, j) => <td key={j} className="whitespace-pre-wrap">{c}</td>)}
                             </tr>
                         ))}
                     </tbody>
@@ -161,7 +161,7 @@
                     <div className="flex items-center mb-3 text-xl font-extrabold uppercase tracking-tight">
                         <span className="mr-3 text-2xl">{icons[severity] || icons.info}</span>{title}
                     </div>
-                    <p className="text-[1.1rem] font-medium leading-relaxed opacity-80">{content}</p>
+                    <p className="text-[1.1rem] font-medium leading-relaxed opacity-80 whitespace-pre-wrap">{content}</p>
                 </div>
             );
         };
@@ -169,7 +169,7 @@
         const AccordionComponent = ({ items }) => (
             <div className="mt-8 space-y-4">
                 {items.map((item, idx) => (
-                    <details key={idx} className="group border border-white/50 rounded-[2.5rem] overflow-hidden bg-white/30 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/50">
+                    <details key={idx} open className="group border border-white/50 rounded-[2.5rem] overflow-hidden bg-white/30 shadow-sm transition-all duration-300 hover:shadow-md hover:bg-white/50">
                         <summary className="p-6 cursor-pointer font-bold text-gray-900 list-none flex justify-between items-center group-open:bg-white/60">
                             <span className="flex items-center text-lg">{item.title}</span>
                             <span className="transition-transform duration-500 group-open:rotate-180 text-2xl opacity-40">↓</span>
@@ -299,11 +299,34 @@
                                 "description": "適用於醫師與診所行政流程 (SOP)",
                                 "icon": "⚕️",
                                 "url": "./clinic/index.html"
+                            },
+                            {
+                                "label": "認識猛健樂",
+                                "description": "基礎衛教、機轉與副作用完整介紹",
+                                "icon": "📖",
+                                "url": "../index.html"
                             }
                         ]
                     }
                 ];
-                setSlides(slidesData);
+                // --- 測驗一頁一題拆分邏輯 ---
+                const finalSlides = [];
+                slidesData.forEach(slide => {
+                    if (slide.type === 'quiz' && slide.questions && slide.questions.length > 1) {
+                        slide.questions.forEach((q, i) => {
+                            finalSlides.push({
+                                ...slide,
+                                id: `${slide.id}-q${i}`,
+                                title: `${slide.title} (${i + 1}/${slide.questions.length})`,
+                                questions: [q]
+                            });
+                        });
+                    } else {
+                        finalSlides.push(slide);
+                    }
+                });
+
+                setSlides(finalSlides);
                 setLoading(false);
             }, []);
 
