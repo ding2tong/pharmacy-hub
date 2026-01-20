@@ -79,17 +79,17 @@
         };
 
         const TableComponent = ({ data }) => (
-            <div className="overflow-x-auto mt-8 rounded-[2rem] border border-black/5 shadow-sm bg-white/40 backdrop-blur-sm">
-                <table className="min-w-full divide-y divide-black/5">
+            <div className="overflow-x-auto">
+                <table>
                     <thead>
-                        <tr className="bg-black/[0.02]">
-                            {data.headers.map((h, i) => <th key={i} className="px-8 py-5 text-left text-xs font-bold text-emerald-900/60 uppercase tracking-widest">{h}</th>)}
+                        <tr>
+                            {data.headers.map((h, i) => <th key={i}>{h}</th>)}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-black/5">
                         {data.rows.map((row, i) => (
-                            <tr key={i} className="hover:bg-white/40 transition-all duration-300">
-                                {row.map((c, j) => <td key={j} className="px-8 py-5 text-[1.05rem] text-gray-700 font-medium whitespace-pre-wrap">{c}</td>)}
+                            <tr key={i}>
+                                {row.map((c, j) => <td key={j}>{c}</td>)}
                             </tr>
                         ))}
                     </tbody>
@@ -114,10 +114,18 @@
                                     const showResult = answers[q.id] !== undefined;
 
                                     let statusClass = "";
+                                    let icon = null;
+
                                     if (isSelected) {
                                         statusClass = isCorrect ? "correct selected" : "incorrect selected";
+                                        icon = isCorrect ? (
+                                            <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                                        ) : (
+                                            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        );
                                     } else if (showResult && isCorrect) {
                                         statusClass = "revealed-correct";
+                                        icon = <svg className="w-6 h-6 text-emerald-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>;
                                     }
 
                                     return (
@@ -127,16 +135,22 @@
                                             onClick={() => setAnswers({ ...answers, [q.id]: idx })}
                                             className={`quiz-option ${statusClass}`}
                                         >
-                                            <span>{opt}</span>
-                                            {showResult && isCorrect && <span>✓</span>}
-                                            {isSelected && !isCorrect && <span>✗</span>}
+                                            <div className="flex items-center gap-4">
+                                                <span className="option-label">{String.fromCharCode(65 + idx)}</span>
+                                                <span className="option-text">{opt}</span>
+                                            </div>
+                                            <div className="status-icon">{icon}</div>
                                         </button>
                                     );
                                 })}
                             </div>
                             {answers[q.id] !== undefined && (
                                 <div className="quiz-explanation">
-                                    <span className="font-bold mr-2">Explanation:</span> {q.explanation}
+                                    <div className="flex items-center gap-2 mb-2 font-bold text-lg">
+                                        <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                        <span>解析</span>
+                                    </div>
+                                    <p className="opacity-90">{q.explanation}</p>
                                 </div>
                             )}
                         </div>
@@ -192,6 +206,18 @@
             </ul>
         );
 
+        const ChoiceComponent = ({ choices }) => (
+            <div className="choice-container">
+                {choices.map((choice, idx) => (
+                    <a key={idx} href={choice.url} className="choice-card">
+                        <div className="choice-icon">{choice.icon || '📍'}</div>
+                        <div className="choice-label">{choice.label}</div>
+                        {choice.description && <div className="choice-desc">{choice.description}</div>}
+                    </a>
+                ))}
+            </div>
+        );
+
         const CalculatorComponent = ({ type }) => {
             if (type === 'mounjaro-delay') {
                 return (
@@ -229,35 +255,33 @@
         const SlideRenderer = ({ slide }) => {
             const containerStyles = { title: 'text-center', text: '' };
 
+            if (slide.type === 'pdf') {
+                return (
+                    <div className="pdf-slide-wrapper">
+                        <iframe src={slide.url} className="pdf-full-frame" frameBorder="0"></iframe>
+                    </div>
+                );
+            }
+
             return (
-                <div className={slide.type === 'pdf' ? '' : `slide-content fade-in-up ${containerStyles[slide.type] || ''}`}>
+                <div className={`slide-content fade-in-up ${containerStyles[slide.type] || ''}`}>
                     {slide.title && (
                         <h2 className={`${slide.type === 'title' ? 'text-5xl' : 'text-3xl'} font-extrabold mb-6 flex items-center ${slide.type === 'title' ? 'justify-center' : ''} leading-tight`}>
                             {slide.icon && slide.type !== 'title' && <span className="mr-5 drop-shadow-sm">{slide.icon}</span>}
-                            <span className="bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">
-                                {slide.title}
-                            </span>
+                            <span className="bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">{slide.title}</span>
                         </h2>
                     )}
-
                     {slide.subtitle && <p className="text-2xl text-accent font-semibold tracking-wide text-center mb-10 opacity-80">{slide.subtitle}</p>}
-
                     {slide.type === 'title' && <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-emerald-200 to-transparent mx-auto mb-10 rounded-full"></div>}
-
                     {slide.content && <p className={`text-gray-700 ${slide.type === 'title' ? 'text-[1.15rem]' : 'text-[1.125rem]'} whitespace-pre-wrap leading-relaxed opacity-90`}>{slide.content}</p>}
-
-                    {slide.meta && <p className="text-sm font-bold text-accent/60 mt-8 text-center italic tracking-widest uppercase">{typeof slide.meta === 'string' ? slide.meta : JSON.stringify(slide.meta)}</p>}
-
                     {slide.type === 'table' && <TableComponent data={slide.data} />}
                     {slide.type === 'chart' && <ChartComponent data={slide.data} chartType={slide.chartType} />}
                     {slide.type === 'quiz' && <QuizComponent questions={slide.questions} />}
                     {slide.type === 'callout' && <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />}
                     {slide.type === 'accordion' && <AccordionComponent items={slide.items} />}
                     {slide.type === 'checklist' && <ChecklistComponent items={slide.items} />}
+                    {slide.type === 'choice' && <ChoiceComponent choices={slide.choices} />}
                     {slide.type === 'calculator' && <CalculatorComponent type={slide.calculatorType} />}
-                    {slide.type === 'pdf' && (
-                        <iframe src={slide.url} className="pdf-full-frame" frameBorder="0"></iframe>
-                    )}
                     {slide.type === 'image' && (
                         <div className="mt-10 text-center">
                             <div className="relative inline-block">
@@ -267,7 +291,6 @@
                             {slide.caption && <p className="mt-6 text-sm text-gray-400 italic font-semibold tracking-wide">{slide.caption}</p>}
                         </div>
                     )}
-
                     {slide.type === 'title' && <div className="mt-16 text-emerald-900/40 text-xs font-bold animate-pulse tracking-[0.3em] uppercase">← Swipe horizontally to explore →</div>}
                 </div>
             );
