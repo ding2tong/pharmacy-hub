@@ -251,8 +251,30 @@
                     {slide.subtitle && <p className="text-2xl text-accent font-semibold tracking-wide text-center mb-10 opacity-80">{slide.subtitle}</p>}
                     {slide.type === 'title' && <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-emerald-200 to-transparent mx-auto mb-10 rounded-full"></div>}
                     {slide.content && <p className={`text-gray-700 ${slide.type === 'title' ? 'text-[1.15rem]' : 'text-[1.125rem]'} whitespace-pre-wrap leading-relaxed opacity-90`}>{slide.content}</p>}
-                    {slide.type === 'table' && <TableComponent data={slide.data} />}
-                    {slide.type === 'chart' && <ChartComponent data={slide.data} chartType={slide.chartType} />}
+                    {slide.type === 'table' && (
+                        <div>
+                            <TableComponent data={slide.data} />
+                            {slide.description && (
+                                <div className="mt-6 p-4 bg-emerald-50/50 border-l-4 border-emerald-400 rounded-r-2xl">
+                                    <p className="text-sm text-emerald-900 leading-relaxed">
+                                        <strong>💡 備註：</strong>{slide.description}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {slide.type === 'chart' && (
+                        <div className="mt-4">
+                            <ChartComponent data={slide.data} chartType={slide.chartType} />
+                            {slide.description && (
+                                <div className="mt-6 p-4 bg-emerald-50/50 border-l-4 border-emerald-400 rounded-r-2xl">
+                                    <p className="text-sm text-emerald-900 leading-relaxed">
+                                        <strong>💡 備註：</strong>{slide.description}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {slide.type === 'quiz' && <QuizComponent questions={slide.questions} />}
                     {slide.type === 'callout' && <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />}
                     {slide.type === 'accordion' && <AccordionComponent items={slide.items} />}

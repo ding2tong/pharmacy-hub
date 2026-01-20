@@ -274,8 +274,30 @@
                     {slide.subtitle && <p className="text-2xl text-accent font-semibold tracking-wide text-center mb-10 opacity-80">{slide.subtitle}</p>}
                     {slide.type === 'title' && <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-emerald-200 to-transparent mx-auto mb-10 rounded-full"></div>}
                     {slide.content && <p className={`text-gray-700 ${slide.type === 'title' ? 'text-[1.15rem]' : 'text-[1.125rem]'} whitespace-pre-wrap leading-relaxed opacity-90`}>{slide.content}</p>}
-                    {slide.type === 'table' && <TableComponent data={slide.data} />}
-                    {slide.type === 'chart' && <ChartComponent data={slide.data} chartType={slide.chartType} />}
+                    {slide.type === 'table' && (
+                        <div>
+                            <TableComponent data={slide.data} />
+                            {slide.description && (
+                                <div className="mt-6 p-4 bg-emerald-50/50 border-l-4 border-emerald-400 rounded-r-2xl">
+                                    <p className="text-sm text-emerald-900 leading-relaxed">
+                                        <strong>💡 備註：</strong>{slide.description}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {slide.type === 'chart' && (
+                        <div className="mt-4">
+                            <ChartComponent data={slide.data} chartType={slide.chartType} />
+                            {slide.description && (
+                                <div className="mt-6 p-4 bg-emerald-50/50 border-l-4 border-emerald-400 rounded-r-2xl">
+                                    <p className="text-sm text-emerald-900 leading-relaxed">
+                                        <strong>💡 備註：</strong>{slide.description}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {slide.type === 'quiz' && <QuizComponent questions={slide.questions} />}
                     {slide.type === 'callout' && <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />}
                     {slide.type === 'accordion' && <AccordionComponent items={slide.items} />}
@@ -308,16 +330,22 @@
                     {
                         "id": "intro",
                         "type": "title",
-                        "title": "Mounjaro (Tirzepatide)",
+                        "title": "猛健樂Mounjaro (Tirzepatide)",
                         "subtitle": "全新雙機轉 GLP-1/GIP 受體促效劑",
                         "meta": "難度：Intermediate • 時長：10分鐘"
                     },
                     {
                         "id": "mechanism",
-                        "type": "text",
+                        "type": "table",
                         "icon": "🧬",
-                        "title": "藥理機轉",
-                        "content": "Mounjaro 是全球首個 GIP 及 GLP-1 受體雙重促效劑。\n它能同時模擬兩種天然腸泌素的作用，達成更強效的控糖與減重能力。"
+                        "title": "猛間樂含有兩種腸泌素：GIP 與 GLP-1",
+                        "data": {
+                            "headers": ["腸泌素類型", "主要生理作用"],
+                            "rows": [
+                                ["GIP (胃抑胰多肽)", "提高胰島素敏感性、調節脂質代謝、減少脂肪發炎"],
+                                ["GLP-1 (類升糖素胜肽-1)", "抑制食慾 (飽足感)、延緩胃排空、抑制升糖素分泌"]
+                            ]
+                        }
                     },
                     {
                         "id": "chart",
@@ -328,7 +356,8 @@
                             "labels": ["對照組", "Mounjaro 5mg", "Mounjaro 10mg", "Mounjaro 15mg"],
                             "values": [0.5, 2.1, 2.4, 2.6],
                             "label": "HbA1c 下降百分比 (%)"
-                        }
+                        },
+                        "description": "糖化血色素 (HbA1c) 是衡量過去 2-3 個月平均血糖水準的指標。當血液中的葡萄糖與紅血球中的血紅蛋白結合時，就會形成 HbA1c。"
                     },
                     {
                         "id": "side-effects",
