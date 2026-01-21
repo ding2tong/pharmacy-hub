@@ -618,6 +618,17 @@ tr:hover td {
     .slide-content h2 {
         font-size: calc(1.8rem * var(--font-scale));
     }
+
+    .quiz-question {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .quiz-badge {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.8rem;
+    }
 }
 
 @keyframes fadeIn {
@@ -631,6 +642,7 @@ tr:hover td {
         transform: translateY(0);
     }
 }
+
 /* Choice/Menu Component */
 .choice-container {
     display: grid;
