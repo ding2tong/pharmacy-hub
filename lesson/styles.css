@@ -722,3 +722,10 @@ tr:hover td {
 .whitespace-pre-wrap {
     white-space: pre-wrap !important;
 }
+/* Accordion UI Components - Hidden markers & Toggle logic */
+details summary { list-style: none !important; outline: none; }
+details summary::-webkit-details-marker { display: none !important; }
+details summary::marker { content: ""; display: none !important; }
+
+.toggle-sign::before { content: "+"; }
+details[open] .toggle-sign::before { content: "−"; }

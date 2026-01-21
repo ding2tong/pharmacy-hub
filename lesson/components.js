@@ -1,0 +1,257 @@
+const { useState, useEffect, useRef } = React;
+
+/**
+ * 格式化 Markdown 加粗語法 **text**
+ */
+const formatBold = (text) => {
+    if (typeof text !== 'string') return text;
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={i} className="font-black text-[#064e3b] px-0.5">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+    });
+};
+
+const ChartComponent = ({ data, chartType }) => {
+    const chartRef = useRef(null);
+    const chartInstance = useRef(null);
+    useEffect(() => {
+        if (chartInstance.current) chartInstance.current.destroy();
+        const ctx = chartRef.current.getContext('2d');
+        chartInstance.current = new Chart(ctx, {
+            type: chartType,
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: data.label || '數據',
+                    data: data.values,
+                    backgroundColor: chartType === 'pie' ? ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#ecfdf5'] : '#10b981',
+                    borderColor: '#ffffff',
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { font: { family: 'Inter', size: 12 }, usePointStyle: true, padding: 20 } } }
+            }
+        });
+        return () => { if (chartInstance.current) chartInstance.current.destroy(); };
+    }, [data, chartType]);
+    return <div className="h-72 mt-8 bg-black/5 p-6 rounded-[2.5rem]"><canvas ref={chartRef}></canvas></div>;
+};
+
+const TableComponent = ({ data }) => (
+    <div className="overflow-x-auto">
+        <table>
+            <thead>
+                <tr>
+                    {data.headers.map((h, i) => <th key={i}>{h}</th>)}
+                </tr>
+            </thead>
+            <tbody>
+                {data.rows.map((row, i) => (
+                    <tr key={i}>
+                        {row.map((c, j) => <td key={j}>{c}</td>)}
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+);
+
+const QuizComponent = ({ questions }) => {
+    const [answers, setAnswers] = useState({});
+    return (
+        <div className="quiz-container">
+            {questions.map(q => (
+                <div key={q.id} className="quiz-card">
+                    <h4 className="quiz-question">
+                        <span className="quiz-badge">Question</span>
+                        {q.question}
+                    </h4>
+                    <div className="quiz-options">
+                        {q.options.map((opt, idx) => {
+                            const isSelected = answers[q.id] === idx;
+                            const isCorrect = q.correctAnswer === idx;
+                            const showResult = answers[q.id] !== undefined;
+
+                            let statusClass = "";
+                            let icon = null;
+
+                            if (isSelected) {
+                                statusClass = isCorrect ? "correct selected" : "incorrect selected";
+                                icon = isCorrect ? (
+                                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                                ) : (
+                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                );
+                            } else if (showResult && isCorrect) {
+                                statusClass = "revealed-correct";
+                                icon = <svg className="w-6 h-6 text-emerald-500/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>;
+                            }
+
+                            return (
+                                <button
+                                    key={idx}
+                                    disabled={showResult}
+                                    onClick={() => setAnswers({ ...answers, [q.id]: idx })}
+                                    className={`quiz-option ${statusClass}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <span className="option-label">{String.fromCharCode(65 + idx)}</span>
+                                        <span className="option-text">{opt}</span>
+                                    </div>
+                                    <div className="status-icon">{icon}</div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {answers[q.id] !== undefined && (
+                        <div className="quiz-explanation">
+                            <div className="flex items-center gap-2 mb-2 font-bold text-lg">
+                                <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                                <span>解析</span>
+                            </div>
+                            <p className="opacity-90">{formatBold(q.explanation)}</p>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const CalloutComponent = ({ severity, title, content }) => {
+    const themes = {
+        warning: 'bg-amber-50/80 border-amber-200 text-amber-950',
+        info: 'bg-emerald-50/80 border-emerald-200 text-emerald-950',
+        success: 'bg-emerald-100/80 border-accent/30 text-emerald-950',
+        error: 'bg-red-50/80 border-red-200 text-red-950 shadow-red-100/50'
+    };
+    const icons = { warning: '⚠️', info: '💡', success: '✅', error: '🚨' };
+    return (
+        <div className={`p-8 rounded-[3rem] border-2 mt-8 shadow-lg ${themes[severity] || themes.info} backdrop-blur-sm`}>
+            <div className="flex items-center mb-3 text-xl font-extrabold uppercase tracking-tight">
+                <span className="mr-3 text-2xl">{icons[severity] || icons.info}</span>{title}
+            </div>
+            <p className="text-[1.1rem] font-medium leading-relaxed opacity-80 whitespace-pre-wrap">{formatBold(content)}</p>
+        </div>
+    );
+};
+
+const AccordionComponent = ({ items }) => (
+    <div className="mt-8 space-y-4">
+        {items.map((item, idx) => (
+            <details
+                key={idx}
+                open
+                className="group bg-white/40 rounded-[1.5rem] border border-white/60 open:bg-white/80 open:shadow-lg transition-all duration-300"
+            >
+                <summary className="p-4 cursor-pointer">
+                    <div className="flex w-full items-center justify-between pointer-events-none">
+                        <span className="text-xl font-black text-[#064e3b] group-open:text-[#10b981] transition-colors leading-tight">
+                            {item.title}
+                        </span>
+                        <span className="toggle-sign text-2xl font-light text-[#10b981] ml-4 leading-none"></span>
+                    </div>
+                </summary>
+                <div className="px-4 pb-4">
+                    <div className="p-4 bg-[#ecfdf5]/50 rounded-[1rem] border-l-4 border-[#10b981]/30 text-[#4b5563] text-[1rem] leading-relaxed font-medium shadow-inner">
+                        {formatBold(item.content)}
+                    </div>
+                </div>
+            </details>
+        ))}
+    </div>
+);
+
+const ChecklistComponent = ({ items }) => (
+    <ul className="mt-8 space-y-4">
+        {items.map((item, idx) => (
+            <li key={idx} className="flex items-start p-6 bg-white/40 border border-white/60 rounded-[2.5rem] shadow-sm transition-all duration-300 hover:bg-white/60 hover:translate-x-1">
+                <div className="mt-1 mr-5">
+                    <input type="checkbox" className="h-6 w-6 text-accent border-emerald-200 rounded-lg focus:ring-accent accent-accent transition-all cursor-pointer" />
+                </div>
+                <label className="text-gray-800 text-[1.1rem] font-semibold leading-relaxed">{formatBold(item)}</label>
+            </li>
+        ))}
+    </ul>
+);
+
+const ChoiceComponent = ({ choices }) => (
+    <div className="choice-container">
+        {choices.map((choice, idx) => (
+            <a key={idx} href={choice.url} target="_blank" className="choice-card">
+                <div className="choice-icon">{choice.icon || '📍'}</div>
+                <div className="choice-label">{formatBold(choice.label)}</div>
+                {choice.description && <div className="choice-desc">{formatBold(choice.description)}</div>}
+            </a>
+        ))}
+    </div>
+);
+
+const CalculatorComponent = ({ type }) => {
+    return null;
+};
+
+const SlideRenderer = ({ slide }) => {
+    const containerStyles = { title: 'text-center', text: '' };
+    if (slide.type === 'pdf') {
+        return (
+            <div className="slide-content text-center flex flex-col items-center justify-center py-16">
+                <div className="w-24 h-24 bg-emerald-100 rounded-[2rem] flex items-center justify-center mb-8 shadow-inner">
+                    <svg className="w-12 h-12 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h2 className="text-4xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">
+                    {slide.title || '相關文件'}
+                </h2>
+                <a href={slide.url} target="_blank" className="inline-flex items-center gap-4 px-12 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold text-xl shadow-xl transition-all hover:scale-105 active:scale-95 no-underline">
+                    開啟 PDF 文件
+                </a>
+            </div>
+        );
+    }
+    return (
+        <div className={`slide-content fade-in-up ${containerStyles[slide.type] || ''}`}>
+            {slide.title && slide.type !== 'callout' && (
+                <h2 className={`${slide.type === 'title' ? 'text-5xl' : 'text-3xl'} font-extrabold mb-6 flex items-center ${slide.type === 'title' ? 'justify-center' : ''} leading-tight`}>
+                    {slide.icon && slide.type !== 'title' && <span className="mr-5 drop-shadow-sm">{slide.icon}</span>}
+                    <span className="bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">{slide.title}</span>
+                </h2>
+            )}
+            {slide.subtitle && <p className="text-2xl text-accent font-semibold tracking-wide text-center mb-10 opacity-80">{slide.subtitle}</p>}
+            {slide.type === 'title' && <div className="h-1.5 w-24 bg-gradient-to-r from-transparent via-emerald-200 to-transparent mx-auto mb-10 rounded-full"></div>}
+            {slide.content && slide.type !== 'callout' && <p className={`text-gray-700 ${slide.type === 'title' ? 'text-[1.15rem]' : 'text-[1.125rem]'} whitespace-pre-wrap leading-relaxed opacity-90`}>{formatBold(slide.content)}</p>}
+            {slide.type === 'table' && <TableComponent data={slide.data} />}
+            {slide.type === 'quiz' && <QuizComponent questions={slide.questions} />}
+            {slide.type === 'callout' && <CalloutComponent severity={slide.severity} title={slide.title} content={slide.content} />}
+            {slide.type === 'accordion' && <AccordionComponent items={slide.items} />}
+            {slide.type === 'checklist' && <ChecklistComponent items={slide.items} />}
+            {slide.type === 'choice' && <ChoiceComponent choices={slide.choices} />}
+            {slide.type === 'image' && (
+                <div className="mt-10 text-center">
+                    <img src={slide.url} alt={slide.alt} className="mx-auto rounded-[3.5rem] shadow-2xl max-h-96 object-cover border-[8px] border-white/60" />
+                </div>
+            )}
+            {slide.type === 'title' && <div className="mt-16 text-emerald-900/40 text-xs font-bold animate-pulse tracking-[0.3em] uppercase">← Swipe horizontally to explore →</div>}
+        </div>
+    );
+};
+
+// Export components to window for use in other scripts
+Object.assign(window, {
+    formatBold,
+    ChartComponent,
+    TableComponent,
+    QuizComponent,
+    CalloutComponent,
+    AccordionComponent,
+    ChecklistComponent,
+    ChoiceComponent,
+    CalculatorComponent,
+    SlideRenderer
+});
