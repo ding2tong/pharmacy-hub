@@ -198,7 +198,7 @@
         const ChoiceComponent = ({ choices }) => (
             <div className="choice-container">
                 {choices.map((choice, idx) => (
-                    <a key={idx} href={choice.url} className="choice-card">
+                    <a key={idx} href={choice.url} target="_blank" className="choice-card">
                         <div className="choice-icon">{choice.icon || '📍'}</div>
                         <div className="choice-label">{choice.label}</div>
                         {choice.description && <div className="choice-desc">{choice.description}</div>}
@@ -216,8 +216,31 @@
 
             if (slide.type === 'pdf') {
                 return (
-                    <div className="pdf-slide-wrapper">
-                        <iframe src={slide.url} className="pdf-full-frame" frameBorder="0"></iframe>
+                    <div className="slide-content text-center flex flex-col items-center justify-center py-16">
+                        <div className="w-24 h-24 bg-emerald-100 rounded-[2rem] flex items-center justify-center mb-8 shadow-inner">
+                            <svg className="w-12 h-12 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <h2 className="text-4xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-br from-emerald-950 to-emerald-800">
+                            {slide.title || '相關文件'}
+                        </h2>
+                        <p className="text-xl text-gray-500 mb-10 font-medium">點擊下方按鈕以在新視窗開啟詳細文件</p>
+                        <a
+                            href={slide.url}
+                            target="_blank"
+                            className="inline-flex items-center gap-4 px-12 py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold text-xl shadow-xl transition-all hover:scale-105 active:scale-95 no-underline"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                            開啟 PDF 文件
+                        </a>
+                        <div className="mt-12 p-6 bg-amber-50 rounded-3xl border border-amber-100 max-w-lg">
+                            <p className="text-sm text-amber-800 leading-relaxed font-medium">
+                                💡 <strong>提示：</strong> 開啟後您可以使用瀏覽器的列印或下載功能儲存文件。
+                            </p>
+                        </div>
                     </div>
                 );
             }
@@ -290,15 +313,15 @@
                         "choices": [
                             {
                                 "label": "藥師指南",
-                                "description": "適用於執業藥師與調劑人員 (SOP)",
+                                "description": "直接開啟藥師 SOP PDF 文件",
                                 "icon": "🏥",
-                                "url": "./pharmacy/index.html"
+                                "url": "./pharmacy/SOP.pdf"
                             },
                             {
                                 "label": "診所指南",
-                                "description": "適用於醫師與診所行政流程 (SOP)",
+                                "description": "直接開啟診所 SOP PDF 文件",
                                 "icon": "⚕️",
-                                "url": "./clinic/index.html"
+                                "url": "./clinic/SOP.pdf"
                             },
 
                         ]
